@@ -23,9 +23,9 @@ frequencies_hz: [62500]
 sensitivity:
   parameters:
     - {path: tumour.material, values: [carcinoma_uci, carcinoma_surowiec, carcinoma_halter]}
-    - {path: materials.scales.adipose_uci.sigma, values: [0.5, 2.0]}
-    - {path: materials.scales.glandular_uci.sigma, values: [0.5, 2.0]}
-    - {path: materials.scales.skin_itis_lf.sigma, values: [0.5, 2.0]}
+    - {path: materials.scales.adipose_uci.sigma_scale, values: [0.5, 2.0]}
+    - {path: materials.scales.glandular_uci.sigma_scale, values: [0.5, 2.0]}
+    - {path: materials.scales.skin_itis_lf.sigma_scale, values: [0.5, 2.0]}
     - {path: electrodes.contact.z_ohm_m2, values: [1.0e-3, 2.0e-2]}
     - {path: tumour.placement.depth_mm, values: [9.0, 16.0]}
     - {path: tumour.radius_mm, values: [4.0, 8.0]}

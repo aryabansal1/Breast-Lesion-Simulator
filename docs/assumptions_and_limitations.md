@@ -20,6 +20,11 @@ modelling are included.
 ## Anatomy
 - VICTRE/breastPhantom are synthetic, uncompressed (verified by file type `_p_`, not inferred). One breast per
   phantom; laterality of +y is **assumed** (`y_positive_is_patient_left`).
+- `tumour.sides` selects which breast(s) get the tumour; the other side keeps only the absent case but the
+  same local mesh refinement at the exactly mirrored position. On a uniform grid the left/right meshes are exact
+  mirror images (absent-case L/R difference ~1e-11). With local refinement the Kuhn tetrahedral split is not
+  mirror-symmetric, leaving a discretisation asymmetry (~1 % on bipolar |Z| at 4/2 mm in the synthetic test);
+  compare tumour effects within a side (`tumour_difference.csv`) or check this baseline in `left_right_difference.csv`.
 - Bilateral runs mirror one breast. Left/right differences then only reflect what you change (tumour, electrodes),
   not natural asymmetry.
 - 0.5 mm downsampling + 1.5–4 mm FE mesh: thin skin (~1.5 mm) is resolved by only one or two elements at 2 mm;

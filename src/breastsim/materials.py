@@ -146,6 +146,12 @@ class MaterialLibrary:
                           scales: dict[str, dict[str, float]] | None = None):
         """Admittivity per label at one frequency, plus the list of extrapolated materials."""
         scales = scales or {}
+        for key, s in scales.items():
+            if key not in self.materials:
+                raise KeyError(f"materials.scales refers to unknown material '{key}'")
+            bad = set(s) - {"sigma_scale", "eps_scale"}
+            if bad:
+                raise KeyError(f"materials.scales.{key}: unknown keys {sorted(bad)} (use sigma_scale / eps_scale)")
         out, flags = {}, []
         for lab, key in assignment.items():
             s = scales.get(key, {})

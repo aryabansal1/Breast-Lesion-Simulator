@@ -93,7 +93,7 @@ def peak_rss_mb():
     return r / 1e6 if sys.platform == "darwin" else r / 1e3
 
 
-def prepare_side(cfg, anat, lib, log):
+def prepare_side(cfg, anat, lib, log, center_override=None):
     """Mesh, electrodes and (optional) tumour labels for one breast."""
     mcfg = cfg.get("mesh", {})
     h = float(mcfg.get("h_mm", 2.0))
@@ -103,10 +103,16 @@ def prepare_side(cfg, anat, lib, log):
     side = anat.side
     refine = [dict(r) for r in mcfg.get("refine", [])]
     tcfg = cfg.get("tumour")
+    # A side not in tumour.sides gets only the "absent" case, but keeps the same local refinement at the
+    # mirrored position so left/right meshes stay comparable.
+    insert = bool(tcfg) and side in tcfg.get("sides", ["left", "right"])
     center = None
     if tcfg:
         am0 = build_mesh(anat, h_mm=h, chest_wall_mm=cw)
-        center, place_info = resolve_center(tcfg, am0, side, mirror)
+        if center_override is not None:
+            center, place_info = np.asarray(center_override, float), {"placement": "mirrored from contralateral"}
+        else:
+            center, place_info = resolve_center(tcfg, am0, side, mirror)
         tum0 = make_tumour(tcfg, center)
         if mcfg.get("tumour_h_mm"):
             refine.append(dict(center_mm=center.tolist(), radius_mm=tum0.bounding_radius_mm + h,
@@ -117,7 +123,7 @@ def prepare_side(cfg, anat, lib, log):
     els = place_electrodes(am.mesh.nodes, am.skin_facets, am.landmarks, ecfg["items"], side, mirror)
     cases = {"absent": am.mesh.labels.copy()}
     trep = None
-    if tcfg:
+    if insert:
         tum = make_tumour(tcfg, center)
         if "material" in tcfg:
             tum.label = int(tcfg.get("label", 200))
@@ -125,7 +131,7 @@ def prepare_side(cfg, anat, lib, log):
         trep.update(place_info)
         cases["present"] = lab
     log(f"[{side}] mesh {am.stats['nodes']} nodes / {am.stats['tets']} tets in {mesh_time:.2f}s")
-    return am, els, cases, trep, mesh_time
+    return am, els, cases, trep, mesh_time, center
 
 
 def run(cfg, out_dir=None, log=print, write_fields=True):
@@ -148,9 +154,14 @@ def run(cfg, out_dir=None, log=print, write_fields=True):
         anats.append(base.mirror())
     rows, meta_sides, diags = [], {}, []
     fields_out = {}
+    base_center = None
     for anat in anats:
         side = anat.side
-        am, els, cases, trep, mesh_time = prepare_side(cfg, anat, lib, log)
+        # The mirrored breast reuses the exactly mirrored tumour centre so both meshes stay mirror images.
+        override = anat.mirror_point(base_center) if (anat.mirrored and base_center is not None) else None
+        am, els, cases, trep, mesh_time, center = prepare_side(cfg, anat, lib, log, override)
+        if not anat.mirrored:
+            base_center = center
         ids = [e.id for e in els]
         meas = measurement_list(cfg, ids)
         pairs = sorted({tuple(m["inject"]) for m in meas})
@@ -233,8 +244,9 @@ def tumour_diff(df):
     if df.empty or not (df.case == "present").any():
         return pd.DataFrame()
     k = ["side", "frequency_hz", "measurement_id"]
-    a = df[df.case == "absent"].set_index(k)
-    p = df[df.case == "present"].set_index(k).reindex(a.index)
+    p0 = df[df.case == "present"].set_index(k)
+    a = df[df.case == "absent"].set_index(k).loc[p0.index]
+    p = p0.reindex(a.index)
     za = (a.z_re + 1j * a.z_im).to_numpy()
     zp = (p.z_re + 1j * p.z_im).to_numpy()
     dz = zp - za
@@ -249,15 +261,26 @@ def tumour_diff(df):
 def left_right_diff(df):
     if df.empty or df.side.nunique() < 2:
         return pd.DataFrame()
-    k = ["case", "frequency_hz", "measurement_id"]
-    lt = df[df.side == "left"].set_index(k)
-    rt = df[df.side == "right"].set_index(k).reindex(lt.index)
-    zl = (lt.z_re + 1j * lt.z_im).to_numpy()
-    zr = (rt.z_re + 1j * rt.z_im).to_numpy()
-    d = zr - zl
-    return pd.DataFrame(index=lt.index, data=dict(
-        z_left_re=zl.real, z_left_im=zl.imag, z_right_re=zr.real, z_right_im=zr.imag,
-                             dz_re=d.real, dz_im=d.imag, rel_d_mag=np.abs(zr) / np.abs(zl) - 1)).reset_index()
+    # Compare like-for-like cases; a side without a tumour contributes its "absent" case to every
+    # comparison (e.g. left tumour vs healthy right).
+    k = ["frequency_hz", "measurement_id"]
+    out = []
+    for case in ("absent", "present"):
+        lt = df[(df.side == "left") & (df.case == case)]
+        rt = df[(df.side == "right") & (df.case == case)]
+        if lt.empty and rt.empty:
+            continue
+        lcase, rcase = (case if not lt.empty else "absent"), (case if not rt.empty else "absent")
+        lt = df[(df.side == "left") & (df.case == lcase)].set_index(k)
+        rt = df[(df.side == "right") & (df.case == rcase)].set_index(k).reindex(lt.index)
+        zl = (lt.z_re + 1j * lt.z_im).to_numpy()
+        zr = (rt.z_re + 1j * rt.z_im).to_numpy()
+        d = zr - zl
+        out.append(pd.DataFrame(index=lt.index, data=dict(
+            case=case, left_case=lcase, right_case=rcase,
+            z_left_re=zl.real, z_left_im=zl.imag, z_right_re=zr.real, z_right_im=zr.imag,
+            dz_re=d.real, dz_im=d.imag, rel_d_mag=np.abs(zr) / np.abs(zl) - 1)).reset_index())
+    return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
 def write_outputs(res, fields_out, out, log):

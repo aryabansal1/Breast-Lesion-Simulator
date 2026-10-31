@@ -1,6 +1,6 @@
 # Bilateral demonstration. VICTRE provides ONE breast per phantom; the right breast here is a
 # MIRROR IMAGE of the left (assumption). Left/right differences therefore come only from the
-# tumour (inserted on both sides here at mirrored positions only if `tumour.sides` includes it)
+# tumour (`tumour.sides`; here left only, so the right breast is the healthy comparison)
 # and from mesh asymmetry -- NOT from natural bilateral variability.
 name: victre_dense_bilateral
 anatomy:
@@ -32,4 +32,5 @@ tumour:
   shape: sphere
   radius_mm: 6.0
   placement: {clock_hour: 1.5, s: 0.55, depth_mm: 12.0}
+  sides: [left]                    # default both; the other side keeps the same refinement, no tumour
 frequencies_hz: [15625, 125000, 1000000]

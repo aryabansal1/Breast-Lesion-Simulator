@@ -13,7 +13,6 @@ import numpy as np
 
 from .anatomy import AIR, SKIN, TUMOUR, AnatomyMesh
 from .electrodes import surface_point
-from .mesh import facet_geometry
 
 
 def rotation_matrix(deg_zyx):
@@ -62,6 +61,22 @@ class Tumour:
             return float(np.linalg.norm(pts, axis=1).max() + self.voxel_mm)
         return float(np.linalg.norm(self.trimesh_obj.vertices, axis=1).max())
 
+    def surface_samples(self, n=2000) -> np.ndarray:
+        """Points (mm, world frame) on or near the nominal tumour surface, for clearance checks."""
+        if self.semi_axes_mm is not None:
+            k = np.arange(n) + 0.5
+            phi = np.arccos(1 - 2 * k / n)
+            th = np.pi * (1 + 5 ** 0.5) * k
+            u = np.stack([np.cos(th) * np.sin(phi), np.sin(th) * np.sin(phi), np.cos(phi)], 1)
+            local = u * self.semi_axes_mm
+        elif self.mask is not None:
+            idx = np.argwhere(self.mask)
+            corners = np.array(np.meshgrid([-.5, .5], [-.5, .5], [-.5, .5], indexing="ij")).reshape(3, -1).T
+            local = ((idx[:, None, :] + corners[None]).reshape(-1, 3) - self.mask_center) * self.voxel_mm
+        else:
+            local = np.asarray(self.trimesh_obj.vertices)
+        return local @ self.R.T + self.center_mm
+
     @property
     def nominal_volume_mm3(self):
         if self.semi_axes_mm is not None:
@@ -107,6 +122,39 @@ def resolve_center(spec, am: AnatomyMesh, side="left", mirror_for_right=True):
     return centre, {"placement": "anatomical", "skin_point_mm": c.tolist(), "inward_normal": (-n).tolist()}
 
 
+def points_to_triangles_min_distance(p, tri, chunk=4096):
+    """Minimum Euclidean distance between points p (N,3) and triangles tri (M,3,3)."""
+    a, b, c = tri[:, 0], tri[:, 1], tri[:, 2]
+    ab, ac = b - a, c - a
+    n = np.cross(ab, ac)
+    nn = np.einsum("ij,ij->i", n, n)
+    best = np.inf
+    for i in range(0, len(p), chunk):
+        q = p[i:i + chunk, None, :]                       # (n,1,3)
+        ap = q - a
+        t = np.einsum("nmj,mj->nm", ap, n) / nn            # signed offset along normal / |n|^2
+        proj = q - t[..., None] * n
+        # barycentric test of projection
+        v0, v1, v2 = ab, ac, proj - a
+        d00 = np.einsum("ij,ij->i", v0, v0)
+        d01 = np.einsum("ij,ij->i", v0, v1)
+        d11 = np.einsum("ij,ij->i", v1, v1)
+        d20 = np.einsum("nmj,mj->nm", v2, v0)
+        d21 = np.einsum("nmj,mj->nm", v2, v1)
+        den = d00 * d11 - d01 ** 2
+        v = (d11 * d20 - d01 * d21) / den
+        w = (d00 * d21 - d01 * d20) / den
+        inside = (v >= 0) & (w >= 0) & (v + w <= 1)
+        d_plane = np.where(inside, np.abs(t) * np.sqrt(nn), np.inf)
+        d_edge = np.full(d_plane.shape, np.inf)
+        for s0, s1 in ((a, b), (b, c), (c, a)):
+            e = s1 - s0
+            u = np.clip(np.einsum("nmj,mj->nm", q - s0, e) / np.einsum("ij,ij->i", e, e), 0.0, 1.0)
+            d_edge = np.minimum(d_edge, np.linalg.norm(q - (s0 + u[..., None] * e), axis=2))
+        best = min(best, float(np.minimum(d_plane, d_edge).min()))
+    return best
+
+
 def insert_tumour(am: AnatomyMesh, tumour: Tumour, electrodes, margin_mm=1.0):
     """Return (tet labels with tumour, report). Raises ValueError if checks fail."""
     mesh = am.mesh
@@ -124,11 +172,13 @@ def insert_tumour(am: AnatomyMesh, tumour: Tumour, electrodes, margin_mm=1.0):
     on_bnd = np.isin(mesh.tets[inside], am.boundary_nodes).any(1)
     if on_bnd.any():
         raise ValueError("tumour touches the external boundary of the domain")
+    # Clearance = min distance from the tumour (meshed tumour nodes + nominal surface samples)
+    # to the electrode contact triangles.
+    tum_pts = np.vstack([mesh.nodes[np.unique(mesh.tets[inside])] * 1e3, tumour.surface_samples()])
     min_d = np.inf
     for e in electrodes:
-        _, _, fc = facet_geometry(mesh.nodes * 1e3, e.facets)
-        d = np.linalg.norm(cen_mm[inside][:, None, :] - fc[None], axis=2).min()
-        min_d = min(min_d, float(d))
+        tri = mesh.nodes[e.facets] * 1e3
+        min_d = min(min_d, float(points_to_triangles_min_distance(tum_pts, tri)))
     if min_d < margin_mm:
         raise ValueError(f"tumour is {min_d:.2f} mm from an electrode (< margin {margin_mm} mm)")
     vol = mesh.volumes() * 1e9

@@ -48,6 +48,15 @@ class Anatomy:
                        "natural left/right anatomical variability.")
         return a
 
+    @property
+    def mirror_plane_y_mm(self) -> float:
+        return float(self.origin_mm[1] + (self.labels.shape[1] - 1) * self.spacing_mm[1] / 2)
+
+    def mirror_point(self, p_mm):
+        q = np.array(p_mm, float)
+        q[..., 1] = 2 * self.mirror_plane_y_mm - q[..., 1]
+        return q
+
     def edges(self, ax):
         n = self.labels.shape[ax]
         return self.origin_mm[ax] - self.spacing_mm[ax] / 2 + np.arange(n + 1) * self.spacing_mm[ax]
@@ -179,6 +188,11 @@ def build_mesh(anat: Anatomy, h_mm=2.0, refine=(), chest_wall_mm=20.0, grading=0
             e_ext = graded_edges(a0, lo[0], h_mm, wins, grading)
             e_in = graded_edges(lo[0], hi[0], h_mm, wins, grading)
             edges.append(np.concatenate([e_ext, e_in[1:]]))
+        elif ax == 1 and anat.mirrored:
+            # grade in the unmirrored frame and reflect, so a mirrored breast gets the mirror-image grid
+            m2 = 2 * anat.mirror_plane_y_mm
+            e = graded_edges(m2 - hi[ax], m2 - a0, h_mm, [(m2 - c, r, hf) for c, r, hf in wins], grading)
+            edges.append((m2 - e)[::-1])
         else:
             edges.append(graded_edges(a0, hi[ax], h_mm, wins, grading))
     shape = tuple(len(e) - 1 for e in edges)
