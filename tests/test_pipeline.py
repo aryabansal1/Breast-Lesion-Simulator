@@ -123,3 +123,18 @@ def test_sigma_scale_changes_result(cfg):
     c["materials"]["scales"] = {"adipose_uci": {"sigma_scale": 2.0}}
     scaled = run(c, None, log=lambda *a: None, write_fields=False)["measurements"]
     assert not np.allclose(base.z_mag_ohm.values, scaled.z_mag_ohm.values, rtol=1e-6)
+
+
+def test_voxel_surface_samples_are_boundary_only():
+    from breastsim.tumour import Tumour
+
+    m = np.zeros((3, 3, 3), bool)
+    m[1, 1, 1] = True
+    t = Tumour("voxel", np.zeros(3), mask=m, voxel_mm=1.0, mask_center=np.array([1.0, 1.0, 1.0]))
+    s = t.surface_samples()
+    assert len(s) == 8 and np.allclose(np.abs(s), 0.5)
+    big = np.ones((166, 166, 166), bool)
+    t = Tumour("voxel", np.zeros(3), mask=big, voxel_mm=0.05, mask_center=np.full(3, 82.5))
+    s = t.surface_samples()
+    assert len(s) == 167 ** 3 - 165 ** 3  # corners on the cube surface, none from the interior
+    assert np.allclose(np.abs(s).max(0), 83 * 0.05)

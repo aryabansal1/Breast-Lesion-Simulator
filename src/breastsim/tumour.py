@@ -70,9 +70,12 @@ class Tumour:
             u = np.stack([np.cos(th) * np.sin(phi), np.sin(th) * np.sin(phi), np.cos(phi)], 1)
             local = u * self.semi_axes_mm
         elif self.mask is not None:
-            idx = np.argwhere(self.mask)
-            corners = np.array(np.meshgrid([-.5, .5], [-.5, .5], [-.5, .5], indexing="ij")).reshape(3, -1).T
-            local = ((idx[:, None, :] + corners[None]).reshape(-1, 3) - self.mask_center) * self.voxel_mm
+            # Voxel corners on the mask boundary only (adjacent to both inside and outside voxels).
+            p = np.pad(self.mask, 1).astype(np.uint8)
+            cnt = sum(p[i:i + p.shape[0] - 1, j:j + p.shape[1] - 1, k:k + p.shape[2] - 1]
+                      for i in (0, 1) for j in (0, 1) for k in (0, 1))
+            corner = np.argwhere((cnt > 0) & (cnt < 8))
+            local = (corner - 0.5 - self.mask_center) * self.voxel_mm
         else:
             local = np.asarray(self.trimesh_obj.vertices)
         return local @ self.R.T + self.center_mm
@@ -124,6 +127,13 @@ def resolve_center(spec, am: AnatomyMesh, side="left", mirror_for_right=True):
 
 def points_to_triangles_min_distance(p, tri, chunk=4096):
     """Minimum Euclidean distance between points p (N,3) and triangles tri (M,3,3)."""
+    # Prune with a bounding sphere: keep points whose lower bound |p-c|-r can beat the
+    # exact distance from the point nearest the sphere centre to any triangle vertex.
+    cen = tri.reshape(-1, 3).mean(0)
+    rad = np.linalg.norm(tri.reshape(-1, 3) - cen, axis=1).max()
+    dc = np.linalg.norm(p - cen, axis=1)
+    upper = np.linalg.norm(tri.reshape(-1, 3) - p[np.argmin(dc)], axis=1).min()
+    p = p[dc - rad <= upper]
     a, b, c = tri[:, 0], tri[:, 1], tri[:, 2]
     ab, ac = b - a, c - a
     n = np.cross(ab, ac)
