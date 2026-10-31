@@ -1,0 +1,32 @@
+# Surowiec AJ, Stuchly SS, Barr JR, Swarup A. Dielectric properties of breast carcinoma and the surrounding tissues. IEEE Trans Biomed Eng 35(4), April 1988
+# Table I (p. 262): Cole-Cole fit parameters, fit range 100 kHz - 100 MHz; measurements 20 kHz - 100 MHz at 37 C, ex vivo. Transcribed from the PDF page image.
+# tau in microseconds, sigma_dc in mS/cm (x0.1 -> S/m). Specimen = tumour specimen letter; sample = position within specimen (sample 1 of A is the central part of the tumour per Fig. 2).
+specimen,sample,eps_s,eps_inf,tau_us,alpha,sigma_dc_mS_per_cm,diagnosis
+A,1,6090,50,0.633,0.326,2.20,infiltrating ductal carcinoma metastases
+A,2,8260,50,0.595,0.311,3.03,infiltrating ductal carcinoma metastases
+A,3,3720,50,0.267,0.283,6.47,infiltrating ductal carcinoma metastases
+A,4,5170,50,0.288,0.239,6.91,infiltrating ductal carcinoma metastases
+A,5,3440,50,0.238,0.238,7.12,infiltrating ductal carcinoma metastases
+A,6,5710,50,0.263,0.277,6.60,infiltrating ductal carcinoma metastases
+B,1,3330,50,1.30,0.380,3.3,infiltrating ductal carcinoma
+B,2,5510,30,0.33,0.250,5.70,infiltrating ductal carcinoma
+C,1,793,20,0.579,0.232,0.82,infiltrating ductal carcinoma
+C,2,482,30,0.603,0.281,0.38,infiltrating ductal carcinoma
+C,3,3310,30,0.557,0.310,3.05,infiltrating ductal carcinoma
+D,1,2740,30,0.269,0.358,3.89,infiltrating lobular carcinoma
+D,2,3285,30,0.3202,0.275,5.75,infiltrating lobular carcinoma
+D,3,2320,30,0.259,0.278,6.49,infiltrating lobular carcinoma
+D,4,1253,319,0.670,0.400,3.52,infiltrating lobular carcinoma
+E,1,3125,167,0.525,0.223,1.02,infiltrating lobular carcinoma
+E,2,7060,30,1.605,0.362,4.99,infiltrating lobular carcinoma
+E,3,13100,30,1.396,0.349,6.59,infiltrating lobular carcinoma
+E,4,3080,50,0.45,0.298,3.90,infiltrating lobular carcinoma
+F,1,8830,30,1.408,0.360,2.78,infiltrating ductal carcinoma
+F,2,10170,30,1.210,0.340,2.73,infiltrating ductal carcinoma
+F,3,180,10,0.684,0.149,0.120,infiltrating ductal carcinoma
+G,1,288,10,0.983,0.10,0.161,infiltrating lobular carcinoma
+G,2,298,10,1.008,0.075,0.130,infiltrating lobular carcinoma
+G,3,675,10,1.391,0.163,0.444,infiltrating lobular carcinoma
+G,4,7930,50,1.216,0.367,5.33,infiltrating lobular carcinoma
+G,5,5490,50,0.768,0.379,4.15,infiltrating lobular carcinoma
+G,6,8660,50,1.415,0.331,5.16,infiltrating lobular carcinoma

@@ -1,0 +1,162 @@
+Blood:
+  gabriel:
+    ef: 4.0
+    del1: 56.0
+    tau1_ps: 8.377
+    alf1: 0.1
+    del2: 5200.0
+    tau2_ns: 132.629
+    alf2: 0.1
+    sig: 0.7
+    del3: 0.0
+    tau3_us: 159.155
+    alf3: 0.2
+    del4: 0.0
+    tau4_ms: 15.915
+    alf4: 0.0
+  lf_conductivity:
+    substituted_from: Blood
+    average_s_per_m: 0.662459736
+    sd: 0.107254247
+    n: 33.0
+    min: 0.433087917
+    max: 0.945572828
+Breast Fat:
+  gabriel:
+    ef: 2.5
+    del1: 3.0
+    tau1_ps: 17.68
+    alf1: 0.1
+    del2: 15.0
+    tau2_ns: 63.66
+    alf2: 0.1
+    sig: 0.01
+    del3: 50000.0
+    tau3_us: 454.7
+    alf3: 0.1
+    del4: 20000000.0
+    tau4_ms: 13.26
+    alf4: 0.0
+  lf_conductivity:
+    substituted_from: Breast Fat
+    average_s_per_m: 0.022232277
+    sd: 0.001798999
+    n: 1.0
+    min: 0.022232277
+    max: 0.022232277
+Breast Gland:
+  gabriel:
+    ef: 4.0
+    del1: 55.0
+    tau1_ps: 7.958
+    alf1: 0.1
+    del2: 2500.0
+    tau2_ns: 159.155
+    alf2: 0.1
+    sig: 0.5
+    del3: 100000.0
+    tau3_us: 159.155
+    alf3: 0.2
+    del4: 40000000.0
+    tau4_ms: 15.915
+    alf4: 0.0
+  lf_conductivity:
+    substituted_from: Thyroid gland
+    average_s_per_m: 0.398066534
+    sd: 0.229934792
+    n: 28.0
+    min: 0.398066534
+    max: 0.398066534
+Connective Tissue:
+  gabriel:
+    ef: 4.0
+    del1: 42.0
+    tau1_ps: 12.243
+    alf1: 0.1
+    del2: 60.0
+    tau2_ns: 6.366
+    alf2: 0.1
+    sig: 0.25
+    del3: 60000.0
+    tau3_us: 318.31
+    alf3: 0.22
+    del4: 20000000.0
+    tau4_ms: 1.326
+    alf4: 0.0
+  lf_conductivity:
+    substituted_from: Tendon\Ligament
+    average_s_per_m: 0.079195857
+    sd: 0.023344569
+    n: 14.0
+    min: 0.079195857
+    max: 0.079195857
+Fat:
+  gabriel:
+    ef: 2.5
+    del1: 9.0
+    tau1_ps: 7.958
+    alf1: 0.2
+    del2: 35.0
+    tau2_ns: 15.915
+    alf2: 0.1
+    sig: 0.035
+    del3: 33000.0
+    tau3_us: 159.155
+    alf3: 0.05
+    del4: 10000000.0
+    tau4_ms: 15.915
+    alf4: 0.01
+  lf_conductivity:
+    substituted_from: Fat (Average Infiltrated)
+    average_s_per_m: 0.077621273
+    sd: 0.093082005
+    n: 91.0
+    min: 0.023986634
+    max: 0.215217391
+Muscle:
+  gabriel:
+    ef: 4.0
+    del1: 50.0
+    tau1_ps: 7.234
+    alf1: 0.1
+    del2: 7000.0
+    tau2_ns: 353.678
+    alf2: 0.1
+    sig: 0.2
+    del3: 1200000.0
+    tau3_us: 318.31
+    alf3: 0.1
+    del4: 25000000.0
+    tau4_ms: 2.274
+    alf4: 0.0
+  lf_conductivity:
+    substituted_from: Muscles
+    average_s_per_m: 0.461007526
+    sd: 0.243781754
+    n: 24.0
+    min: 0.1
+    max: 0.726
+Skin:
+  gabriel:
+    ef: 4.0
+    del1: 32.0
+    tau1_ps: 7.234
+    alf1: 0.0
+    del2: 1100.0
+    tau2_ns: 32.481
+    alf2: 0.2
+    sig: 0.0002
+    del3: 0.0
+    tau3_us: 159.155
+    alf3: 0.2
+    del4: 0.0
+    tau4_ms: 15.915
+    alf4: 0.2
+  lf_conductivity:
+    substituted_from: Skin (Dry)
+    average_s_per_m: 0.148297101
+    sd: 0.042145684
+    n: 7.0
+    min: 0.056521739
+    max: 0.25
+

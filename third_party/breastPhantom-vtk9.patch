@@ -1,0 +1,53 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8d6e28a..1cba007 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 2.8)
+ PROJECT(breastPhantomProject)
+ 
+ find_package(VTK REQUIRED)
+-include(${VTK_USE_FILE})
++if(VTK_USE_FILE)
++  include(${VTK_USE_FILE})
++endif()
++link_libraries(${VTK_LIBRARIES})
+ 
+ find_package(OpenMP)
+ if(OPENMP_FOUND)
+diff --git a/artery.cxx b/artery.cxx
+index 6544555..08b4605 100644
+--- a/artery.cxx
++++ b/artery.cxx
+@@ -13,6 +13,7 @@
+  * 
+  */
+ 
++#include <vtkVersion.h>
+ #include "artery.hxx"
+ 
+ using namespace std;
+diff --git a/breastPhantom.cxx b/breastPhantom.cxx
+index 328ab41..ad67442 100644
+--- a/breastPhantom.cxx
++++ b/breastPhantom.cxx
+@@ -15,6 +15,8 @@
+ 
+ // create volumetric breast
+ 
++#include <fstream>
++using std::ifstream;
+ #include "breastPhantom.hxx"
+ 
+ namespace po = boost::program_options;
+diff --git a/vein.cxx b/vein.cxx
+index 925f4c2..bff7f86 100644
+--- a/vein.cxx
++++ b/vein.cxx
+@@ -13,6 +13,7 @@
+  * 
+  */
+ 
++#include <vtkVersion.h>
+ #include "vein.hxx"
+ 
+ using namespace std;

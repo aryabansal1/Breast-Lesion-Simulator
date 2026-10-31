@@ -1,0 +1,49 @@
+# Uncompressed VICTRE dense phantom, tumour-absent vs tumour-present, 4 tetrapolar pairs.
+name: victre_dense_paired
+anatomy:
+  type: victre_npz
+  path: data/anatomy/victre_dense_p_0p5mm.npz
+  side: left
+  y_positive_is_patient_left: true   # ASSUMPTION (laterality is not documented by breastPhantom)
+  bilateral: false
+mesh:
+  h_mm: 2.0
+  tumour_h_mm: 1.0          # local (tensor-product) refinement around the tumour
+  chest_wall_mm: 20.0       # assumed muscle block behind the phantom's posterior face
+# solver: {method: iterative, tol: 1.0e-10, maxiter: 2000}   # AMG-COCG; use for h < 1.5 mm (direct LU runs out of RAM)
+materials:
+  library: data/materials/library.yaml
+  assignment: uci_breast
+  extrapolation: warn       # warn | error | allow
+  overrides: {}
+  scales: {}
+electrodes:
+  mirror_clock_for_right: true
+  contact: {model: constant, z_ohm_m2: 5.0e-3}   # ASSUMED specific contact impedance (wet gel)
+  items:
+    - {id: E1, clock_hour: 12, s: 0.55, radius_mm: 5}
+    - {id: E2, clock_hour: 1.5, s: 0.55, radius_mm: 5}
+    - {id: E3, clock_hour: 3, s: 0.55, radius_mm: 5}
+    - {id: E4, clock_hour: 4.5, s: 0.55, radius_mm: 5}
+    - {id: E5, clock_hour: 6, s: 0.55, radius_mm: 5}
+    - {id: E6, clock_hour: 7.5, s: 0.55, radius_mm: 5}
+    - {id: E7, clock_hour: 9, s: 0.55, radius_mm: 5}
+    - {id: E8, clock_hour: 10.5, s: 0.55, radius_mm: 5}
+measurements:
+  current_a: 1.0e-4
+  pairs:
+    - {id: across_vertical, inject: [E1, E5], sense: [E2, E4]}
+    - {id: across_horizontal, inject: [E3, E7], sense: [E4, E6]}
+    - {id: upper_outer, inject: [E1, E3], sense: [E2, E8]}
+    - {id: bipolar_E1E5, inject: [E1, E5], sense: [E1, E5]}
+  pattern: adjacent
+tumour:
+  shape: sphere
+  radius_mm: 6.0
+  placement: {clock_hour: 1.5, s: 0.55, depth_mm: 12.0}   # depth of centre below skin
+  electrode_margin_mm: 1.0
+  # material: carcinoma_uci    # optional override of label 200
+frequencies_hz: [15625, 31250, 62500, 125000, 250000, 500000, 1000000]
+fields:
+  frequency_hz: 62500
+  measurement: across_vertical
