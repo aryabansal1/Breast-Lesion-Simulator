@@ -30,12 +30,13 @@ res = run(cfg, "{out}", log=lambda *a: None, write_fields=False)
 m = res["metadata"]["sides"]
 print(json.dumps(dict(nodes=sum(s["mesh"]["nodes"] for s in m.values()),
                       tets=sum(s["mesh"]["tets"] for s in m.values()),
-                      peak_rss_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024)))
+                      peak_rss_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+                      / (2 ** 20 if sys.platform == "darwin" else 2 ** 10))))
 """
 
 
 def run_level(config, out, h, th):
-    d = Path(out) / f"h{h:g}_t{th:g}"
+    d = (Path(out) / f"h{h:g}_t{th:g}").resolve()
     t = time.perf_counter()
     r = subprocess.run([sys.executable, "-c", CASE.format(root=ROOT, config=Path(config).resolve(), h=h, th=th,
                                                           out=d)], capture_output=True, text=True, cwd=ROOT)
@@ -115,12 +116,12 @@ def plot(df, main_lv, out):
     g = df[(df.sweep == "global") | df.set_index(["h_mm", "tumour_h_mm"]).index.isin(main_lv)]
     g = g[g.frequency_hz == f0]
     top = (g[g.h_mm == min(main_lv)[0]].assign(a=lambda d: d.rel_d_mag_pct.abs())
-           .sort_values("a", ascending=False).measurement_id.head(6).tolist())
+           .sort_values("a", ascending=False)[["side", "measurement_id"]].head(6).itertuples(index=False))
     fig, ax = plt.subplots(1, 2, figsize=(11, 4))
-    for mid in top:
-        s = g[g.measurement_id == mid].sort_values("h_mm")
-        ax[0].plot(s.h_mm, s.z_absent_mag, "o-", label=mid)
-        ax[1].plot(s.h_mm, s.rel_d_mag_pct, "o-", label=mid)
+    for side, mid in top:
+        s = g[(g.side == side) & (g.measurement_id == mid)].sort_values("h_mm")
+        ax[0].plot(s.h_mm, s.z_absent_mag, "o-", label=f"{side} {mid}")
+        ax[1].plot(s.h_mm, s.rel_d_mag_pct, "o-", label=f"{side} {mid}")
     ax[0].set(xlabel="global element size h (mm); tumour refinement h/2", ylabel="|Z| tumour absent (ohm)",
               title=f"Transfer impedance vs mesh size ({f0 / 1e3:g} kHz)")
     ax[1].set(xlabel="global element size h (mm); tumour refinement h/2", ylabel="tumour effect on |Z| (%)",
