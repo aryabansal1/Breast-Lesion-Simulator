@@ -30,8 +30,9 @@ modelling are included.
 - 0.5 mm downsampling + 1.5–4 mm FE mesh: thin skin (~1.5 mm) is resolved by only one or two elements at 2 mm;
   vessels/ducts are only partly resolved. The tetrahedral mesh is voxel-based (stair-stepped surface). Electrode
   contact area is corrected to the smooth (projected) area by scaling \(z_c\) (`electrodes.stair_step_area_correction`).
-  Dense-VICTRE mesh convergence (`docs/benchmarks.md`): tumour-induced changes are mesh-stable to ≤ 0.3 pp at the
-  default 2 mm / 1 mm mesh, while absolute \|Z\| varies non-monotonically by up to ~10 % (near-electrode pairs).
+  Dense-VICTRE mesh convergence down to 0.75 mm (`docs/benchmarks.md`): tumour-induced changes sit at a
+  ~0.05 pp median / ~0.5 pp worst-pair noise floor from 2 mm down (no further gain from refinement), while
+  absolute \|Z\| needs ~1 mm (iterative solver) for ~±2 % median / ~±5 % worst-pair discretisation error.
 - The breast is in a supine-like free shape from the phantom; gravity deformation, strap pressure and posture of
   a worn device are not modelled.
 

@@ -10,6 +10,7 @@ mesh:
   h_mm: 2.0
   tumour_h_mm: 1.0          # local (tensor-product) refinement around the tumour
   chest_wall_mm: 20.0       # assumed muscle block behind the phantom's posterior face
+# solver: {method: iterative, tol: 1.0e-10, maxiter: 2000}   # AMG-COCG; use for h < 1.5 mm (direct LU runs out of RAM)
 materials:
   library: data/materials/library.yaml
   assignment: uci_breast
