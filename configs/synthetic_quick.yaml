@@ -1,0 +1,35 @@
+# Fast smoke test (< 30 s on a laptop): synthetic hemispherical breast, 4 electrodes, 2 frequencies.
+name: synthetic_quick
+anatomy:
+  type: synthetic_hemisphere
+  radius_mm: 50.0
+  skin_mm: 1.5
+  bilateral: false
+mesh:
+  h_mm: 4.0
+  tumour_h_mm: 2.0
+  chest_wall_mm: 15.0
+materials:
+  library: data/materials/library.yaml
+  assignment: uci_breast
+  extrapolation: warn
+electrodes:
+  contact: {model: constant, z_ohm_m2: 5.0e-3}   # ASSUMED
+  items:
+    - {id: E1, clock_hour: 12, s: 0.5, radius_mm: 6}
+    - {id: E2, clock_hour: 3, s: 0.5, radius_mm: 6}
+    - {id: E3, clock_hour: 6, s: 0.5, radius_mm: 6}
+    - {id: E4, clock_hour: 9, s: 0.5, radius_mm: 6}
+measurements:
+  current_a: 1.0e-4
+  pairs:
+    - {id: tetra_13_24, inject: [E1, E3], sense: [E2, E4]}
+    - {id: bipolar_13, inject: [E1, E3], sense: [E1, E3]}
+tumour:
+  shape: sphere
+  radius_mm: 8.0
+  placement: {clock_hour: 1.5, s: 0.5, depth_mm: 15.0}
+frequencies_hz: [15625, 250000]
+fields:
+  frequency_hz: 15625
+  measurement: tetra_13_24

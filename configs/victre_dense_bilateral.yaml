@@ -1,0 +1,35 @@
+# Bilateral demonstration. VICTRE provides ONE breast per phantom; the right breast here is a
+# MIRROR IMAGE of the left (assumption). Left/right differences therefore come only from the
+# tumour (inserted on both sides here at mirrored positions only if `tumour.sides` includes it)
+# and from mesh asymmetry -- NOT from natural bilateral variability.
+name: victre_dense_bilateral
+anatomy:
+  type: victre_npz
+  path: data/anatomy/victre_dense_p_0p5mm.npz
+  side: left
+  y_positive_is_patient_left: true   # ASSUMPTION
+  bilateral: true
+mesh: {h_mm: 2.5, tumour_h_mm: 1.25, chest_wall_mm: 20.0}
+materials: {library: data/materials/library.yaml, assignment: uci_breast, extrapolation: warn}
+electrodes:
+  mirror_clock_for_right: true     # clock positions mirrored so "1:30" is upper-outer on both sides
+  contact: {model: constant, z_ohm_m2: 5.0e-3}
+  items:
+    - {id: E1, clock_hour: 12, s: 0.55, radius_mm: 5}
+    - {id: E2, clock_hour: 1.5, s: 0.55, radius_mm: 5}
+    - {id: E3, clock_hour: 3, s: 0.55, radius_mm: 5}
+    - {id: E4, clock_hour: 4.5, s: 0.55, radius_mm: 5}
+    - {id: E5, clock_hour: 6, s: 0.55, radius_mm: 5}
+    - {id: E6, clock_hour: 7.5, s: 0.55, radius_mm: 5}
+    - {id: E7, clock_hour: 9, s: 0.55, radius_mm: 5}
+    - {id: E8, clock_hour: 10.5, s: 0.55, radius_mm: 5}
+measurements:
+  current_a: 1.0e-4
+  pairs:
+    - {id: across_vertical, inject: [E1, E5], sense: [E2, E4]}
+    - {id: across_horizontal, inject: [E3, E7], sense: [E4, E6]}
+tumour:
+  shape: sphere
+  radius_mm: 6.0
+  placement: {clock_hour: 1.5, s: 0.55, depth_mm: 12.0}
+frequencies_hz: [15625, 125000, 1000000]

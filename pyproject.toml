@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "breastsim"
+version = "0.1.0"
+description = "Physics-based 3D breast electrical impedance simulator (complete electrode model, FEM)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+  "numpy>=1.24",
+  "scipy>=1.10",
+  "pandas>=2.0",
+  "pyyaml>=6.0",
+  "matplotlib>=3.7",
+  "meshio>=5.3",
+  "pymetis>=2023.1",
+]
+
+[project.optional-dependencies]
+viz = ["pyvista>=0.43"]
+stl = ["trimesh>=4.0"]
+data = ["xlrd>=2.0", "openpyxl>=3.1"]
+dev = ["pytest>=7", "ruff>=0.4"]
+
+[project.scripts]
+breastsim = "breastsim.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]

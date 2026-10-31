@@ -1,0 +1,32 @@
+# One-at-a-time sensitivity of the tumour-induced change to uncertain inputs.
+# Run: breastsim sensitivity configs/victre_dense_sensitivity.yaml
+name: victre_dense_sensitivity
+anatomy: {type: victre_npz, path: data/anatomy/victre_dense_p_0p5mm.npz, side: left, bilateral: false}
+mesh: {h_mm: 2.5, tumour_h_mm: 1.25, chest_wall_mm: 20.0}
+materials: {library: data/materials/library.yaml, assignment: uci_breast, extrapolation: warn, scales: {}}
+electrodes:
+  contact: {model: constant, z_ohm_m2: 5.0e-3}
+  items:
+    - {id: E1, clock_hour: 12, s: 0.55, radius_mm: 5}
+    - {id: E2, clock_hour: 1.5, s: 0.55, radius_mm: 5}
+    - {id: E4, clock_hour: 4.5, s: 0.55, radius_mm: 5}
+    - {id: E5, clock_hour: 6, s: 0.55, radius_mm: 5}
+measurements:
+  current_a: 1.0e-4
+  pairs:
+    - {id: across_vertical, inject: [E1, E5], sense: [E2, E4]}
+tumour:
+  shape: sphere
+  radius_mm: 6.0
+  placement: {clock_hour: 1.5, s: 0.55, depth_mm: 12.0}
+frequencies_hz: [62500]
+sensitivity:
+  parameters:
+    - {path: tumour.material, values: [carcinoma_uci, carcinoma_surowiec, carcinoma_halter]}
+    - {path: materials.scales.adipose_uci.sigma, values: [0.5, 2.0]}
+    - {path: materials.scales.glandular_uci.sigma, values: [0.5, 2.0]}
+    - {path: materials.scales.skin_itis_lf.sigma, values: [0.5, 2.0]}
+    - {path: electrodes.contact.z_ohm_m2, values: [1.0e-3, 2.0e-2]}
+    - {path: tumour.placement.depth_mm, values: [9.0, 16.0]}
+    - {path: tumour.radius_mm, values: [4.0, 8.0]}
+    - {path: electrodes.items.1.clock_hour, values: [1.0, 2.0]}

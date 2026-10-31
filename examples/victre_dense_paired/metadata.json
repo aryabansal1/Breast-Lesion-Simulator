@@ -1,0 +1,1746 @@
+{
+ "breastsim_version": "0.1.0",
+ "git_commit": null,
+ "timestamp": "2026-10-31T00:00:24.480844+00:00",
+ "platform": "Linux-6.8.0-1061-aws-x86_64-with-glibc2.35",
+ "machine": "x86_64",
+ "python": "3.10.12",
+ "config": {
+  "name": "victre_dense_paired",
+  "anatomy": {
+   "type": "victre_npz",
+   "path": "data/anatomy/victre_dense_p_0p5mm.npz",
+   "side": "left",
+   "y_positive_is_patient_left": true,
+   "bilateral": false
+  },
+  "mesh": {
+   "h_mm": 2.0,
+   "tumour_h_mm": 1.0,
+   "chest_wall_mm": 20.0
+  },
+  "materials": {
+   "library": "data/materials/library.yaml",
+   "assignment": "uci_breast",
+   "extrapolation": "warn",
+   "overrides": {},
+   "scales": {}
+  },
+  "electrodes": {
+   "mirror_clock_for_right": true,
+   "contact": {
+    "model": "constant",
+    "z_ohm_m2": 0.005
+   },
+   "items": [
+    {
+     "id": "E1",
+     "clock_hour": 12,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E2",
+     "clock_hour": 1.5,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E3",
+     "clock_hour": 3,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E4",
+     "clock_hour": 4.5,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E5",
+     "clock_hour": 6,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E6",
+     "clock_hour": 7.5,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E7",
+     "clock_hour": 9,
+     "s": 0.55,
+     "radius_mm": 5
+    },
+    {
+     "id": "E8",
+     "clock_hour": 10.5,
+     "s": 0.55,
+     "radius_mm": 5
+    }
+   ]
+  },
+  "measurements": {
+   "current_a": 0.0001,
+   "pairs": [
+    {
+     "id": "across_vertical",
+     "inject": [
+      "E1",
+      "E5"
+     ],
+     "sense": [
+      "E2",
+      "E4"
+     ]
+    },
+    {
+     "id": "across_horizontal",
+     "inject": [
+      "E3",
+      "E7"
+     ],
+     "sense": [
+      "E4",
+      "E6"
+     ]
+    },
+    {
+     "id": "upper_outer",
+     "inject": [
+      "E1",
+      "E3"
+     ],
+     "sense": [
+      "E2",
+      "E8"
+     ]
+    },
+    {
+     "id": "bipolar_E1E5",
+     "inject": [
+      "E1",
+      "E5"
+     ],
+     "sense": [
+      "E1",
+      "E5"
+     ]
+    }
+   ],
+   "pattern": "adjacent"
+  },
+  "tumour": {
+   "shape": "sphere",
+   "radius_mm": 6.0,
+   "placement": {
+    "clock_hour": 1.5,
+    "s": 0.55,
+    "depth_mm": 12.0
+   },
+   "electrode_margin_mm": 1.0
+  },
+  "frequencies_hz": [
+   15625,
+   31250,
+   62500,
+   125000,
+   250000,
+   500000,
+   1000000
+  ],
+  "fields": {
+   "frequency_hz": 62500,
+   "measurement": "across_vertical"
+  }
+ },
+ "config_path": "/home/ubuntu/repos/Breast-Lesion-Simulator/configs/victre_dense_paired.yaml",
+ "material_library": {
+  "path": "/home/ubuntu/repos/Breast-Lesion-Simulator/data/materials/library.yaml",
+  "sha256": "ec3a4453f2c5ce1f373c963fe0b7d92542c51660e468f090193905a8f0818b48",
+  "version": "0.1.0"
+ },
+ "assignment": {
+  "2": "skin_itis_lf",
+  "33": "skin_itis_lf",
+  "40": "muscle_itis_lf",
+  "88": "connective_itis_lf",
+  "150": "blood_itis_lf",
+  "225": "blood_itis_lf",
+  "41": "muscle_itis_lf",
+  "1": "adipose_uci",
+  "29": "glandular_uci",
+  "95": "glandular_uci",
+  "125": "glandular_uci",
+  "250": "glandular_uci",
+  "200": "carcinoma_uci"
+ },
+ "sides": {
+  "left": {
+   "mirrored": false,
+   "anatomy_notes": [
+    "Loaded from /home/ubuntu/repos/Breast-Lesion-Simulator/data/anatomy/victre_dense_p_0p5mm.npz (source dense_p_-321964974.mhd, downsampled x10 by block majority from the uncompressed phantom).",
+    "ASSUMPTION: +y of the phantom points to the patient's left; the phantom is treated as a left breast. breastPhantom does not document laterality."
+   ],
+   "mesh": {
+    "h_mm": 2.0,
+    "grid_shape": [
+     43,
+     54,
+     45
+    ],
+    "nodes": 70423,
+    "tets": 388170,
+    "min_edge_mm": 0.9999999999999991,
+    "max_edge_mm": 2.5834981970831166,
+    "chest_wall_extension_mm": 20.0,
+    "dropped_island_cells": 0,
+    "skin_coverage_of_breast_surface": 0.9782979383041389,
+    "volume_ml_by_label": {
+     "1": 38.17855724206053,
+     "2": 12.681733474927329,
+     "29": 60.16451795439782,
+     "33": 0.1615310903396576,
+     "40": 30.076794647263576,
+     "41": 94.42950574584444,
+     "95": 0.10907242356521565,
+     "125": 0.00799999999999998,
+     "150": 0.07296997558804555,
+     "225": 0.08831674149954474
+    }
+   },
+   "mesh_time_s": 0.443790861999787,
+   "landmarks": {
+    "nipple_mm": [
+     38.75,
+     0.028098986241857915,
+     -8.757336495293263
+    ],
+    "base_center_mm": [
+     -1.0,
+     -7.06807050882658,
+     -0.05129190031152575
+    ],
+    "axis": [
+     0.9623221167820666,
+     0.17179373206386384,
+     -0.21076778021237472
+    ],
+    "breast_depth_mm": 41.30633527671694,
+    "chest_wall_x_mm": -1.0,
+    "viewer_right": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "superior": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "electrodes": [
+    {
+     "id": "E1",
+     "clock_hour": 12,
+     "s": 0.55,
+     "center_mm": [
+      20.41650180291688,
+      -2.9846333333333326,
+      14.378743891506568
+     ],
+     "meshed_area_mm2": 118.58375925116675,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 78.31700658988265,
+     "n_facets": 85
+    },
+    {
+     "id": "E2",
+     "clock_hour": 1.5,
+     "s": 0.55,
+     "center_mm": [
+      17.760299685772907,
+      14.944404722010065,
+      14.712077224839902
+     ],
+     "meshed_area_mm2": 127.39359079558027,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 77.13326623372897,
+     "n_facets": 199
+    },
+    {
+     "id": "E3",
+     "clock_hour": 3,
+     "s": 0.55,
+     "center_mm": [
+      10.681179274208105,
+      32.279783028922864,
+      -2.9030899901428953
+     ],
+     "meshed_area_mm2": 103.63332669807883,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 71.65815861490992,
+     "n_facets": 124
+    },
+    {
+     "id": "E4",
+     "clock_hour": 4.5,
+     "s": 0.55,
+     "center_mm": [
+      7.014512607541441,
+      21.085421050186945,
+      -27.9657
+     ],
+     "meshed_area_mm2": 122.10660313237152,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 77.0456735426872,
+     "n_facets": 136
+    },
+    {
+     "id": "E5",
+     "clock_hour": 6,
+     "s": 0.55,
+     "center_mm": [
+      10.347845940874773,
+      -4.984633333333332,
+      -34.63236666666666
+     ],
+     "meshed_area_mm2": 96.0,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 71.03520254071216,
+     "n_facets": 87
+    },
+    {
+     "id": "E6",
+     "clock_hour": 7.5,
+     "s": 0.55,
+     "center_mm": [
+      15.681179274208105,
+      -26.317966666666667,
+      -25.9657
+     ],
+     "meshed_area_mm2": 127.59874134572465,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 78.39357349971723,
+     "n_facets": 102
+    },
+    {
+     "id": "E7",
+     "clock_hour": 9,
+     "s": 0.55,
+     "center_mm": [
+      22.41650180291688,
+      -36.31796666666667,
+      -5.299033333333331
+     ],
+     "meshed_area_mm2": 112.55951729275597,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 81.13436960969155,
+     "n_facets": 66
+    },
+    {
+     "id": "E8",
+     "clock_hour": 10.5,
+     "s": 0.55,
+     "center_mm": [
+      22.41650180291688,
+      -18.317966666666667,
+      10.045410558173236
+     ],
+     "meshed_area_mm2": 126.90341507776013,
+     "nominal_area_mm2": 78.53981633974483,
+     "projected_area_mm2": 79.2127002513158,
+     "n_facets": 101
+    }
+   ],
+   "tumour": {
+    "shape": "sphere",
+    "center_mm": [
+     9.270010035261443,
+     11.255858877269253,
+     6.515284421205172
+    ],
+    "nominal_volume_mm3": 904.7786842338603,
+    "meshed_volume_mm3": 907.0000000000001,
+    "volume_error": 0.002455092946868742,
+    "n_elements": 5442,
+    "replaced_tissue_mm3_by_label": {
+     "1": 125.50000000000001,
+     "29": 779.5000000000001,
+     "95": 2.0000000000000013
+    },
+    "min_distance_to_electrode_mm": 5.968512965851776,
+    "warnings": [],
+    "placement": "anatomical",
+    "skin_point_mm": [
+     17.833333333333332,
+     15.015366666666667,
+     14.034300000000002
+    ],
+    "inward_normal": [
+     -0.7136102748393242,
+     -0.3132923157831179,
+     -0.6265846315662358
+    ]
+   },
+   "materials": [
+    {
+     "frequency_hz": 15625.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1132.4887336082866,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1132.4887336082866,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 18234.484599182135,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 2871.6348135643966,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5241.672261181776,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5241.672261181776,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 18234.484599182135,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.052343366324203854,
+     "eps_r": 1862.7678537454933,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5084150516444643,
+     "eps_r": 3642.2462782502585,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5084150516444643,
+     "eps_r": 3642.2462782502585,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5084150516444643,
+     "eps_r": 3642.2462782502585,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5084150516444643,
+     "eps_r": 3642.2462782502585,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 15625.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.27378042573696526,
+     "eps_r": 18672.13120901563,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1129.7733911466153,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1129.7733911466153,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 12229.828881597334,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 1278.416599667166,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5222.666032911688,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5222.666032911688,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 12229.828881597334,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.053034365971116396,
+     "eps_r": 1296.3271938673092,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5090547562136396,
+     "eps_r": 3265.178702041851,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5090547562136396,
+     "eps_r": 3265.178702041851,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5090547562136396,
+     "eps_r": 3265.178702041851,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5090547562136396,
+     "eps_r": 3265.178702041851,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 31250.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.28087198779468076,
+     "eps_r": 12866.889358421186,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1124.823225013632,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1124.823225013632,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 9353.237813721182,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 674.1875290243495,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5179.745494849118,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5179.745494849118,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 9353.237813721182,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.0540050052525798,
+     "eps_r": 898.0462594808065,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5102112701235791,
+     "eps_r": 2926.227112721504,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5102112701235791,
+     "eps_r": 2926.227112721504,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5102112701235791,
+     "eps_r": 2926.227112721504,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5102112701235791,
+     "eps_r": 2926.227112721504,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 62500.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.29082137302201305,
+     "eps_r": 8777.378453165195,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1115.5619183672957,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1115.5619183672957,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 7550.255599187922,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 406.5454242162992,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5075.7334466594075,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 5075.7334466594075,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 7550.255599187922,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.055366374477765185,
+     "eps_r": 618.1800905265848,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5123148416266413,
+     "eps_r": 2620.966335660835,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5123148416266413,
+     "eps_r": 2620.966335660835,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5123148416266413,
+     "eps_r": 2620.966335660835,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5123148416266413,
+     "eps_r": 2620.966335660835,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 125000.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.3046992868136226,
+     "eps_r": 5903.5917958924,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1097.659268582416,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1097.659268582416,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 5762.706667170721,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 272.7908227797237,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 4813.455339617037,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 4813.455339617037,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 5762.706667170721,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.05727052586270078,
+     "eps_r": 421.7494178313782,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5161811842194727,
+     "eps_r": 2345.103412054724,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5161811842194727,
+     "eps_r": 2345.103412054724,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5161811842194727,
+     "eps_r": 2345.103412054724,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5161811842194727,
+     "eps_r": 2345.103412054724,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 250000.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.3238590045734346,
+     "eps_r": 3893.552415552194,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1061.996134448824,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 1061.996134448824,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 3647.2722063207716,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 200.685847819757,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 4188.575249702159,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 4188.575249702159,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 3647.2722063207716,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.05992086313225659,
+     "eps_r": 284.1738913701954,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5234123996349708,
+     "eps_r": 2094.2222536780173,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5234123996349708,
+     "eps_r": 2094.2222536780173,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5234123996349708,
+     "eps_r": 2094.2222536780173,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5234123996349708,
+     "eps_r": 2094.2222536780173,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 500000.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.3498531261398956,
+     "eps_r": 2499.8247915767183,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 2,
+     "label_name": "skin",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 990.7552139519341,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 33,
+     "label_name": "nipple",
+     "material": "skin_itis_lf",
+     "sigma_s_per_m": 0.148297101,
+     "eps_r": 990.7552139519341,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 40,
+     "label_name": "muscle",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 1836.4235973843377,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 88,
+     "label_name": "ligament",
+     "material": "connective_itis_lf",
+     "sigma_s_per_m": 0.079195857,
+     "eps_r": 160.02842618580974,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 150,
+     "label_name": "artery",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 3026.3049593756746,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 225,
+     "label_name": "vein",
+     "material": "blood_itis_lf",
+     "sigma_s_per_m": 0.662459736,
+     "eps_r": 3026.3049593756746,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 41,
+     "label_name": "chest_wall_extension",
+     "material": "muscle_itis_lf",
+     "sigma_s_per_m": 0.461007526,
+     "eps_r": 1836.4235973843377,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 1,
+     "label_name": "fat",
+     "material": "adipose_uci",
+     "sigma_s_per_m": 0.06357837798890531,
+     "eps_r": 188.19803209755247,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 29,
+     "label_name": "glandular",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5373141751030176,
+     "eps_r": 1863.3324202948309,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 95,
+     "label_name": "TDLU",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5373141751030176,
+     "eps_r": 1863.3324202948309,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 125,
+     "label_name": "duct",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5373141751030176,
+     "eps_r": 1863.3324202948309,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 250,
+     "label_name": "calcification",
+     "material": "glandular_uci",
+     "sigma_s_per_m": 0.5373141751030176,
+     "eps_r": 1863.3324202948309,
+     "extrapolated": false
+    },
+    {
+     "frequency_hz": 1000000.0,
+     "label": 200,
+     "label_name": "tumour",
+     "material": "carcinoma_uci",
+     "sigma_s_per_m": 0.3841406795659989,
+     "eps_r": 1548.3209001939756,
+     "extrapolated": false
+    }
+   ],
+   "measurements": [
+    {
+     "id": "across_vertical",
+     "inject": [
+      "E1",
+      "E5"
+     ],
+     "sense": [
+      "E2",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "across_horizontal",
+     "inject": [
+      "E3",
+      "E7"
+     ],
+     "sense": [
+      "E4",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "upper_outer",
+     "inject": [
+      "E1",
+      "E3"
+     ],
+     "sense": [
+      "E2",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "bipolar_E1E5",
+     "inject": [
+      "E1",
+      "E5"
+     ],
+     "sense": [
+      "E1",
+      "E5"
+     ],
+     "type": "bipolar"
+    },
+    {
+     "id": "adj_E1E2_E3E4",
+     "inject": [
+      "E1",
+      "E2"
+     ],
+     "sense": [
+      "E3",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E1E2_E4E5",
+     "inject": [
+      "E1",
+      "E2"
+     ],
+     "sense": [
+      "E4",
+      "E5"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E1E2_E5E6",
+     "inject": [
+      "E1",
+      "E2"
+     ],
+     "sense": [
+      "E5",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E1E2_E6E7",
+     "inject": [
+      "E1",
+      "E2"
+     ],
+     "sense": [
+      "E6",
+      "E7"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E1E2_E7E8",
+     "inject": [
+      "E1",
+      "E2"
+     ],
+     "sense": [
+      "E7",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E2E3_E4E5",
+     "inject": [
+      "E2",
+      "E3"
+     ],
+     "sense": [
+      "E4",
+      "E5"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E2E3_E5E6",
+     "inject": [
+      "E2",
+      "E3"
+     ],
+     "sense": [
+      "E5",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E2E3_E6E7",
+     "inject": [
+      "E2",
+      "E3"
+     ],
+     "sense": [
+      "E6",
+      "E7"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E2E3_E7E8",
+     "inject": [
+      "E2",
+      "E3"
+     ],
+     "sense": [
+      "E7",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E2E3_E8E1",
+     "inject": [
+      "E2",
+      "E3"
+     ],
+     "sense": [
+      "E8",
+      "E1"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E3E4_E1E2",
+     "inject": [
+      "E3",
+      "E4"
+     ],
+     "sense": [
+      "E1",
+      "E2"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E3E4_E5E6",
+     "inject": [
+      "E3",
+      "E4"
+     ],
+     "sense": [
+      "E5",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E3E4_E6E7",
+     "inject": [
+      "E3",
+      "E4"
+     ],
+     "sense": [
+      "E6",
+      "E7"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E3E4_E7E8",
+     "inject": [
+      "E3",
+      "E4"
+     ],
+     "sense": [
+      "E7",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E3E4_E8E1",
+     "inject": [
+      "E3",
+      "E4"
+     ],
+     "sense": [
+      "E8",
+      "E1"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E4E5_E1E2",
+     "inject": [
+      "E4",
+      "E5"
+     ],
+     "sense": [
+      "E1",
+      "E2"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E4E5_E2E3",
+     "inject": [
+      "E4",
+      "E5"
+     ],
+     "sense": [
+      "E2",
+      "E3"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E4E5_E6E7",
+     "inject": [
+      "E4",
+      "E5"
+     ],
+     "sense": [
+      "E6",
+      "E7"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E4E5_E7E8",
+     "inject": [
+      "E4",
+      "E5"
+     ],
+     "sense": [
+      "E7",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E4E5_E8E1",
+     "inject": [
+      "E4",
+      "E5"
+     ],
+     "sense": [
+      "E8",
+      "E1"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E5E6_E1E2",
+     "inject": [
+      "E5",
+      "E6"
+     ],
+     "sense": [
+      "E1",
+      "E2"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E5E6_E2E3",
+     "inject": [
+      "E5",
+      "E6"
+     ],
+     "sense": [
+      "E2",
+      "E3"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E5E6_E3E4",
+     "inject": [
+      "E5",
+      "E6"
+     ],
+     "sense": [
+      "E3",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E5E6_E7E8",
+     "inject": [
+      "E5",
+      "E6"
+     ],
+     "sense": [
+      "E7",
+      "E8"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E5E6_E8E1",
+     "inject": [
+      "E5",
+      "E6"
+     ],
+     "sense": [
+      "E8",
+      "E1"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E6E7_E1E2",
+     "inject": [
+      "E6",
+      "E7"
+     ],
+     "sense": [
+      "E1",
+      "E2"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E6E7_E2E3",
+     "inject": [
+      "E6",
+      "E7"
+     ],
+     "sense": [
+      "E2",
+      "E3"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E6E7_E3E4",
+     "inject": [
+      "E6",
+      "E7"
+     ],
+     "sense": [
+      "E3",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E6E7_E4E5",
+     "inject": [
+      "E6",
+      "E7"
+     ],
+     "sense": [
+      "E4",
+      "E5"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E6E7_E8E1",
+     "inject": [
+      "E6",
+      "E7"
+     ],
+     "sense": [
+      "E8",
+      "E1"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E7E8_E1E2",
+     "inject": [
+      "E7",
+      "E8"
+     ],
+     "sense": [
+      "E1",
+      "E2"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E7E8_E2E3",
+     "inject": [
+      "E7",
+      "E8"
+     ],
+     "sense": [
+      "E2",
+      "E3"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E7E8_E3E4",
+     "inject": [
+      "E7",
+      "E8"
+     ],
+     "sense": [
+      "E3",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E7E8_E4E5",
+     "inject": [
+      "E7",
+      "E8"
+     ],
+     "sense": [
+      "E4",
+      "E5"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E7E8_E5E6",
+     "inject": [
+      "E7",
+      "E8"
+     ],
+     "sense": [
+      "E5",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E8E1_E2E3",
+     "inject": [
+      "E8",
+      "E1"
+     ],
+     "sense": [
+      "E2",
+      "E3"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E8E1_E3E4",
+     "inject": [
+      "E8",
+      "E1"
+     ],
+     "sense": [
+      "E3",
+      "E4"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E8E1_E4E5",
+     "inject": [
+      "E8",
+      "E1"
+     ],
+     "sense": [
+      "E4",
+      "E5"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E8E1_E5E6",
+     "inject": [
+      "E8",
+      "E1"
+     ],
+     "sense": [
+      "E5",
+      "E6"
+     ],
+     "type": "tetrapolar"
+    },
+    {
+     "id": "adj_E8E1_E6E7",
+     "inject": [
+      "E8",
+      "E1"
+     ],
+     "sense": [
+      "E6",
+      "E7"
+     ],
+     "type": "tetrapolar"
+    }
+   ]
+  }
+ },
+ "total_time_s": 105.6951164420002,
+ "peak_rss_mb": 5896.704,
+ "phasor_convention": "v(t) = Re{V exp(+j omega t)}",
+ "z_definition": "Z = (U_sense_pos - U_sense_neg) / I"
+}
