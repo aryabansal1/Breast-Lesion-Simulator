@@ -100,3 +100,22 @@ def test_mesh_convergence_point_electrodes():
     e1, e2 = abs(zs[0] - zs[1]), abs(zs[1] - zs[2])
     assert e2 < 0.7 * e1
     assert e2 / abs(zs[2]) < 0.02
+
+
+def test_iterative_solver_matches_direct():
+    rng = np.random.default_rng(1)
+    m = box_mesh((LX, LY, LZ), (24, 6, 6))
+    g = 0.02 + rng.random(m.ntets) * 0.5 + 1j * rng.random(m.ntets) * 0.05
+    f, _ = m.boundary_facets()
+    _, _, c = facet_geometry(m.nodes, f)
+    top = np.isclose(c[:, 2], LZ)
+    elec = [f[np.isclose(c[:, 0], 0)], f[np.isclose(c[:, 0], LX)],
+            f[top & (np.abs(c[:, 0] - 0.0133) < 0.003)], f[top & (np.abs(c[:, 0] - 0.0267) < 0.003)]]
+    z = 1e-3 + 2e-4j
+    inj = np.stack([drive_pattern(4, 0, 1, 1e-3), drive_pattern(4, 2, 3, 1e-3)], axis=1)
+    d = CEMSystem(m.nodes, m.tets, g, elec, z).solve(inj)
+    it = CEMSystem(m.nodes, m.tets, g, elec, z, method="iterative", tol=1e-12).solve(inj)
+    assert np.abs(it.U - d.U).max() / np.abs(d.U).max() < 1e-8
+    assert max(it.diagnostics["relative_residual"]) < 1e-11
+    assert max(it.diagnostics["current_conservation_error"]) < 1e-8
+    assert it.diagnostics["iterations"] and it.diagnostics["lu_nnz"] is None

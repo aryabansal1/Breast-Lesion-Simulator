@@ -65,7 +65,11 @@ class CEMSolution:
 
 
 class CEMSystem:
-    def __init__(self, nodes, tets, gamma_e, electrode_facets, z_contact):
+    def __init__(self, nodes, tets, gamma_e, electrode_facets, z_contact, method="direct", tol=1e-10,
+                 maxiter=2000):
+        if method not in ("direct", "iterative"):
+            raise ValueError(f"solver method must be 'direct' or 'iterative', got {method!r}")
+        self.method, self.tol, self.maxiter = method, tol, maxiter
         self.nodes, self.tets = nodes, tets
         self.gamma_e = np.asarray(gamma_e, complex)
         self.L = len(electrode_facets)
@@ -101,6 +105,8 @@ class CEMSystem:
         self.A = self.A_full[: n + L - 1, : n + L - 1].tocsc()
         self.assembly_time = time.perf_counter() - t0
         self._lu = None
+        self._amg = None
+        self.iterations = []
 
     def factorize(self):
         """Sparse LU (SuperLU) with a fill-reducing nested-dissection ordering (METIS).
@@ -108,6 +114,8 @@ class CEMSystem:
         The matrix is complex symmetric with a dominant diagonal, so symmetric mode
         without partial pivoting is used; the residual is checked after every solve."""
         t0 = time.perf_counter()
+        if self.method == "iterative":
+            return self._setup_amg(t0)
         self.perm = nested_dissection_order(self.A)
         self.ordering = "metis_nd" if self.perm is not None else "mmd_at_plus_a"
         if self.perm is None:
@@ -119,6 +127,53 @@ class CEMSystem:
                                  options=dict(SymmetricMode=True))
         self.factor_time = time.perf_counter() - t0
         return self
+
+    def _setup_amg(self, t0):
+        """Smoothed-aggregation AMG on Re(A). Re(A) is SPD (sigma > 0, Re(1/z) > 0, one electrode
+        grounded) and dominates Im(A) at kHz-MHz, so it is a good preconditioner for COCG."""
+        import pyamg
+        self._amg = pyamg.smoothed_aggregation_solver(self.A.real.tocsr(), symmetry="symmetric", max_coarse=500)
+        self._prec = self._amg.aspreconditioner(cycle="V")
+        self.ordering = "amg_cocg"
+        self.factor_time = time.perf_counter() - t0
+        return self
+
+    def _precondition(self, r):
+        out = np.empty_like(r)
+        for j in range(r.shape[1]):
+            out[:, j] = self._prec @ r[:, j].real + 1j * (self._prec @ r[:, j].imag)
+        return out
+
+    def _cocg_solve(self, b):
+        """Preconditioned conjugate orthogonal CG for complex-symmetric A (unconjugated dot products),
+        all right-hand sides advanced together. Stops at ||b - A x|| <= tol ||b|| per column."""
+        a = self.A.tocsr()
+        x = np.zeros_like(b)
+        r = b.copy()
+        bn = np.maximum(np.linalg.norm(b, axis=0), 1e-300)
+        z = self._precondition(r)
+        p = z.copy()
+        rho = np.einsum("ij,ij->j", r, z)
+        active = np.ones(b.shape[1], bool)
+        its = np.zeros(b.shape[1], int)
+        for _ in range(self.maxiter):
+            q = a @ p
+            alpha = np.where(active, rho / np.einsum("ij,ij->j", p, q), 0)
+            x += alpha * p
+            r -= alpha * q
+            its += active
+            active &= np.linalg.norm(r, axis=0) > self.tol * bn
+            if not active.any():
+                break
+            z = self._precondition(r)
+            rho_new = np.einsum("ij,ij->j", r, z)
+            beta = np.where(active, rho_new / rho, 0)
+            rho = np.where(active, rho_new, rho)
+            p = z + beta * p
+        if active.any():
+            raise RuntimeError(f"COCG did not reach tol={self.tol:g} in {self.maxiter} iterations")
+        self.iterations = its.tolist()
+        return x
 
     def _lu_solve(self, b):
         if self.perm is None:
@@ -133,13 +188,14 @@ class CEMSystem:
         if currents.ndim == 1:
             currents = currents[:, None]
         n, L = len(self.nodes), self.L
-        if self._lu is None:
+        if self._lu is None and self._amg is None:
             self.factorize()
         rhs = np.zeros((n + L, currents.shape[1]), complex)
         rhs[n:n + L] = currents
         t0 = time.perf_counter()
         x = np.zeros_like(rhs)
-        x[: n + L - 1] = self._lu_solve(rhs[: n + L - 1])
+        inv = self._cocg_solve if self.method == "iterative" else self._lu_solve
+        x[: n + L - 1] = inv(rhs[: n + L - 1])
         solve_time = time.perf_counter() - t0
         # residual of the full (ungrounded) system: checks the grounded electrode's equation too
         res = np.linalg.norm(self.A_full @ x - rhs, axis=0) / np.maximum(np.linalg.norm(rhs, axis=0), 1e-300)
@@ -153,7 +209,9 @@ class CEMSystem:
                     net_injected_current=np.abs(currents.sum(axis=0)).tolist(),
                     factor_time_s=getattr(self, "factor_time", None), solve_time_s=solve_time,
                     assembly_time_s=self.assembly_time, ndof=int(self.A.shape[0]),
-                    lu_nnz=int(self._lu.L.nnz + self._lu.U.nnz))
+                    solver=self.method,
+                    lu_nnz=int(self._lu.L.nnz + self._lu.U.nnz) if self._lu is not None else None,
+                    iterations=self.iterations if self.method == "iterative" else None)
         return CEMSolution(u, U, currents, diag)
 
     def element_fields(self, u):

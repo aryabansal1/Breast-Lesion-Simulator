@@ -194,7 +194,10 @@ def run(cfg, out_dir=None, log=print, write_fields=True):
                     if lab_ < len(lut):
                         lut[lab_] = g
                 gamma_e = lut[labels]
-                sysm = CEMSystem(am.mesh.nodes, am.mesh.tets, gamma_e, [e.facets for e in els], z).factorize()
+                scfg = cfg.get("solver", {})
+                sysm = CEMSystem(am.mesh.nodes, am.mesh.tets, gamma_e, [e.facets for e in els], z,
+                                 method=scfg.get("method", "direct"), tol=float(scfg.get("tol", 1e-10)),
+                                 maxiter=int(scfg.get("maxiter", 2000))).factorize()
                 sol = sysm.solve(inj)
                 d = dict(side=side, case=case, frequency_hz=f, **sol.diagnostics)
                 diags.append(d)

@@ -138,3 +138,12 @@ def test_voxel_surface_samples_are_boundary_only():
     s = t.surface_samples()
     assert len(s) == 167 ** 3 - 165 ** 3  # corners on the cube surface, none from the interior
     assert np.allclose(np.abs(s).max(0), 83 * 0.05)
+
+
+def test_iterative_solver_reproduces_direct_pipeline(cfg):
+    c = copy.deepcopy(cfg)
+    c["solver"] = {"method": "iterative", "tol": 1e-12}
+    a = run(cfg, None, log=lambda *x: None, write_fields=False)["measurements"]
+    b = run(c, None, log=lambda *x: None, write_fields=False)["measurements"]
+    za, zb = a.z_re + 1j * a.z_im, b.z_re + 1j * b.z_im
+    assert np.max(np.abs(zb - za) / np.abs(za).clip(1e-3)) < 1e-7

@@ -17,6 +17,7 @@ dependencies = [
   "matplotlib>=3.7",
   "meshio>=5.3",
   "pymetis>=2023.1",
+  "pyamg>=5.0",
 ]
 
 [project.optional-dependencies]

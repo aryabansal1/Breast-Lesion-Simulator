@@ -26,6 +26,7 @@ cfg = load_config("{config}")
 cfg["mesh"]["h_mm"] = {h}
 cfg["mesh"]["tumour_h_mm"] = {th}
 cfg.pop("fields", None)
+cfg["solver"] = dict(cfg.get("solver") or {{}}, method="{method}")
 res = run(cfg, "{out}", log=lambda *a: None, write_fields=False)
 m = res["metadata"]["sides"]
 print(json.dumps(dict(nodes=sum(s["mesh"]["nodes"] for s in m.values()),
@@ -35,15 +36,15 @@ print(json.dumps(dict(nodes=sum(s["mesh"]["nodes"] for s in m.values()),
 """
 
 
-def run_level(config, out, h, th):
+def run_level(config, out, h, th, method="direct"):
     d = (Path(out) / f"h{h:g}_t{th:g}").resolve()
     t = time.perf_counter()
-    r = subprocess.run([sys.executable, "-c", CASE.format(root=ROOT, config=Path(config).resolve(), h=h, th=th,
-                                                          out=d)], capture_output=True, text=True, cwd=ROOT)
+    case = CASE.format(root=ROOT, config=Path(config).resolve(), h=h, th=th, method=method, out=d)
+    r = subprocess.run([sys.executable, "-c", case], capture_output=True, text=True, cwd=ROOT)
     if r.returncode:
         raise RuntimeError(r.stderr[-3000:])
     info = json.loads(r.stdout.strip().splitlines()[-1])
-    info.update(h_mm=h, tumour_h_mm=th, runtime_s=time.perf_counter() - t, dir=str(d))
+    info.update(h_mm=h, tumour_h_mm=th, runtime_s=time.perf_counter() - t, dir=str(d), solver=method)
     print(f"h={h:g} tumour_h={th:g}: {info['nodes']} nodes, {info['tets']} tets, "
           f"{info['runtime_s']:.0f} s, {info['peak_rss_mb']:.0f} MB", flush=True)
     return info
@@ -70,17 +71,25 @@ def main():
     ap.add_argument("-o", "--out", default=str(ROOT / "outputs/convergence"))
     ap.add_argument("--levels", nargs="+", default=["3:1.5", "2.5:1.25", "2:1", "1.5:0.75"])
     ap.add_argument("--tumour-levels", nargs="*", default=["2:2", "2:0.5"])
+    ap.add_argument("--solver", choices=["direct", "iterative"], default="direct")
+    ap.add_argument("--reuse", action="store_true",
+                    help="reuse levels already listed in <out>/levels.csv instead of re-running them")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     main_lv, tum_lv = parse(a.levels), parse(a.tumour_levels)
+    done = {}
+    if a.reuse and (out / "levels.csv").exists():
+        for r in pd.read_csv(out / "levels.csv").to_dict("records"):
+            if (Path(r["dir"]) / "tumour_difference.csv").exists():
+                done[(r["h_mm"], r["tumour_h_mm"])] = r
     infos, seen = [], set()
     for sweep, lv in (("global", main_lv), ("tumour", tum_lv)):
         for h, th in lv:
             if (h, th) in seen:
                 continue
             seen.add((h, th))
-            info = run_level(a.config, out, h, th)
+            info = dict(done[(h, th)]) if (h, th) in done else run_level(a.config, out, h, th, a.solver)
             info["sweep"] = sweep
             infos.append(info)
             pd.DataFrame(infos).to_csv(out / "levels.csv", index=False)
