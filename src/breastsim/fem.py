@@ -154,11 +154,14 @@ class CEMSystem:
         z = self._precondition(r)
         p = z.copy()
         rho = np.einsum("ij,ij->j", r, z)
-        active = np.ones(b.shape[1], bool)
+        active = np.linalg.norm(r, axis=0) > self.tol * bn
         its = np.zeros(b.shape[1], int)
         for _ in range(self.maxiter):
+            if not active.any():
+                break
             q = a @ p
-            alpha = np.where(active, rho / np.einsum("ij,ij->j", p, q), 0)
+            pq = np.einsum("ij,ij->j", p, q)
+            alpha = np.divide(rho, pq, out=np.zeros_like(rho), where=active)
             x += alpha * p
             r -= alpha * q
             its += active
@@ -167,7 +170,7 @@ class CEMSystem:
                 break
             z = self._precondition(r)
             rho_new = np.einsum("ij,ij->j", r, z)
-            beta = np.where(active, rho_new / rho, 0)
+            beta = np.divide(rho_new, rho, out=np.zeros_like(rho), where=active)
             rho = np.where(active, rho_new, rho)
             p = z + beta * p
         if active.any():

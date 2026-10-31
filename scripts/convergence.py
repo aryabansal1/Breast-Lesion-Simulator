@@ -7,6 +7,7 @@ with the finest level of the main sweep (smallest h). Writes convergence.csv, co
 and convergence.png into the output directory.
 """
 import argparse
+import hashlib
 import json
 import subprocess
 import sys
@@ -17,6 +18,8 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+from breastsim.simulate import load_config  # noqa: E402
 
 CASE = r"""
 import json, resource, sys
@@ -34,6 +37,32 @@ print(json.dumps(dict(nodes=sum(s["mesh"]["nodes"] for s in m.values()),
                       peak_rss_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
                       / (2 ** 20 if sys.platform == "darwin" else 2 ** 10))))
 """
+
+
+def fingerprint(config, method):
+    """Hash of the resolved config (mesh sizes excluded), every input file it references, and the solver."""
+    cfg = load_config(config)
+    cfg.get("mesh", {}).pop("h_mm", None)
+    cfg.get("mesh", {}).pop("tumour_h_mm", None)
+    h = hashlib.sha256(json.dumps(cfg, sort_keys=True, default=str).encode() + method.encode())
+
+    def files(o):
+        if isinstance(o, dict):
+            for v in o.values():
+                yield from files(v)
+        elif isinstance(o, list):
+            for v in o:
+                yield from files(v)
+        elif isinstance(o, str) and len(o) < 512:
+            for base in (Path(config).resolve().parent, ROOT):
+                f = base / o
+                if f.is_file():
+                    yield f
+                    break
+
+    for f in sorted(set(files(cfg))):
+        h.update(f.read_bytes())
+    return h.hexdigest()[:16]
 
 
 def run_level(config, out, h, th, method="direct"):
@@ -73,15 +102,16 @@ def main():
     ap.add_argument("--tumour-levels", nargs="*", default=["2:2", "2:0.5"])
     ap.add_argument("--solver", choices=["direct", "iterative"], default="direct")
     ap.add_argument("--reuse", action="store_true",
-                    help="reuse levels already listed in <out>/levels.csv instead of re-running them")
+                    help="reuse levels in <out>/levels.csv run with the same config, inputs and solver")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     main_lv, tum_lv = parse(a.levels), parse(a.tumour_levels)
+    fp = fingerprint(a.config, a.solver)
     done = {}
     if a.reuse and (out / "levels.csv").exists():
         for r in pd.read_csv(out / "levels.csv").to_dict("records"):
-            if (Path(r["dir"]) / "tumour_difference.csv").exists():
+            if r.get("fingerprint") == fp and (Path(r["dir"]) / "tumour_difference.csv").exists():
                 done[(r["h_mm"], r["tumour_h_mm"])] = r
     infos, seen = [], set()
     for sweep, lv in (("global", main_lv), ("tumour", tum_lv)):
@@ -89,7 +119,10 @@ def main():
             if (h, th) in seen:
                 continue
             seen.add((h, th))
-            info = dict(done[(h, th)]) if (h, th) in done else run_level(a.config, out, h, th, a.solver)
+            if (h, th) in done:
+                info = dict(done[(h, th)])
+            else:
+                info = dict(run_level(a.config, out, h, th, a.solver), fingerprint=fp)
             info["sweep"] = sweep
             infos.append(info)
             pd.DataFrame(infos).to_csv(out / "levels.csv", index=False)

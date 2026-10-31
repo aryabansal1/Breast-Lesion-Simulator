@@ -119,3 +119,14 @@ def test_iterative_solver_matches_direct():
     assert max(it.diagnostics["relative_residual"]) < 1e-11
     assert max(it.diagnostics["current_conservation_error"]) < 1e-8
     assert it.diagnostics["iterations"] and it.diagnostics["lu_nnz"] is None
+
+
+def test_iterative_solver_zero_current_pattern():
+    m = box_mesh((LX, LY, LZ), (12, 4, 4))
+    f, _ = m.boundary_facets()
+    _, _, c = facet_geometry(m.nodes, f)
+    elec = [f[np.isclose(c[:, 0], 0)], f[np.isclose(c[:, 0], LX)]]
+    s = CEMSystem(m.nodes, m.tets, np.full(m.ntets, 0.3 + 0.01j), elec, 1e-3, method="iterative")
+    sol = s.solve(np.stack([np.zeros(2), drive_pattern(2, 0, 1, 1e-3)], axis=1))
+    assert np.all(sol.U[:, 0] == 0) and np.all(np.isfinite(sol.U))
+    assert sol.diagnostics["iterations"][0] == 0
