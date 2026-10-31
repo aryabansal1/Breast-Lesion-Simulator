@@ -40,10 +40,12 @@ print(json.dumps(dict(nodes=sum(s["mesh"]["nodes"] for s in m.values()),
 
 
 def fingerprint(config, method):
-    """Hash of the resolved config (mesh sizes excluded), every input file it references, and the solver."""
+    """Hash of the config as run (mesh sizes and fields excluded), every input file it references, and the solver."""
     cfg = load_config(config)
     cfg.get("mesh", {}).pop("h_mm", None)
     cfg.get("mesh", {}).pop("tumour_h_mm", None)
+    cfg.pop("fields", None)
+    cfg.setdefault("solver", {}).pop("method", None)
     h = hashlib.sha256(json.dumps(cfg, sort_keys=True, default=str).encode() + method.encode())
 
     def files(o):
