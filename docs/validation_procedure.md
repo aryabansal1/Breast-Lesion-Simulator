@@ -9,6 +9,7 @@
 | Linearity in injected current | `test_linear_scaling_with_current` | exact to 1e-10 |
 | Reciprocity \(Z_{AB,CD}=Z_{CD,AB}\) (random heterogeneous γ) | `test_reciprocity` | < 1e-10 |
 | Mesh convergence | `test_mesh_convergence_point_electrodes`, `scripts/benchmark.py` | monotone |
+| Mesh convergence, dense VICTRE paired case | `scripts/convergence.py` → `examples/victre_convergence/` | tumour effect ≤ 0.3 pp vs 1.5 mm; absolute \|Z\| ≤ ~11 % |
 | Zero-contrast tumour → no change | `test_zero_contrast_tumour_gives_no_change` | < 1e-12 |
 | Determinism (repeat runs bitwise identical) | `test_tumour_changes_..._deterministic` | identical |
 | Bilateral mirror symmetry without tumour | `test_bilateral_mirror_is_symmetric_without_tumour` | < 1e-6 |
