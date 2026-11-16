@@ -87,6 +87,8 @@ def loco_splits(ds: BreastDataset):
 def group_kfold_splits(ds: BreastDataset, k=5, seed=0):
     """K folds over geometry_id (a lesion record and its baseline are always on the same side of the split)."""
     geoms = np.array(sorted(set(ds.geometry_id)))
+    if k < 2:
+        raise ValueError(f"group k-fold needs k >= 2, got {k}")
     k = min(k, len(geoms))
     if len(geoms) < 3:   # every outer training split must keep >= 2 geometries for inner validation
         raise ValueError("group k-fold needs at least three geometries")
