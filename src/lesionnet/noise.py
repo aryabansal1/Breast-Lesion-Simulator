@@ -51,7 +51,7 @@ class NoiseModel:
     def _pair_scale(self, n, rng):
         lo, hi = self.scale_jitter
         if hi <= lo:
-            return np.full(n, self.scale)
+            return np.full(n, self.scale * lo)
         return self.scale * np.exp(rng.uniform(np.log(lo), np.log(hi), n))
 
     def perturb(self, Z, rng, frequency_hz, measurement_type, measurement_electrodes, scale=None):
