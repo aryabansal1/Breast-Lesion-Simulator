@@ -96,7 +96,7 @@ def run_job(spec, job, cache_dir):
         inj[ids.index(b), p] -= current
     mcfg = cfg["materials"]
     states = [(None, cases["absent"])] + [(m, cases["present"]) for m in spec["lesion_materials"]]
-    z_rows, max_res, extrap_all = [], 0.0, set()
+    z_rows, max_res, extrap_all, perm = [], 0.0, set(), None
     for f in [float(x) for x in cfg["frequencies_hz"]]:
         zc = []
         for it, e in zip(cfg["electrodes"]["items"], els):
@@ -111,7 +111,8 @@ def run_job(spec, job, cache_dir):
                 if lab < len(lut):
                     lut[lab] = g
             sysm = CEMSystem(am.mesh.nodes, am.mesh.tets, lut[labels], [e.facets for e in els], zc)
-            sol = sysm.factorize().solve(inj)
+            sol = sysm.factorize(perm).solve(inj)
+            perm = sysm.perm  # same mesh -> same sparsity pattern for every state and frequency
             max_res = max(max_res, float(np.max(sol.diagnostics["relative_residual"])))
             for m in meas:
                 U = sol.U[:, pairs.index(tuple(m["inject"]))]
