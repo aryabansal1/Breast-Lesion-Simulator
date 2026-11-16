@@ -171,6 +171,8 @@ def assemble(spec, out_dir, results):
                                    clock_hour=e["clock_hour"], s=e["s"], center_x_mm=e["center_mm"][0],
                                    center_y_mm=e["center_mm"][1], center_z_mm=e["center_mm"][2],
                                    projected_area_mm2=e["projected_area_mm2"], meshed_area_mm2=e["meshed_area_mm2"]))
+    if not records:
+        raise SystemExit(f"no successful jobs to assemble ({len(failures)} rejected)")
     rec = pd.DataFrame(records)
     md = pd.DataFrame([dict(measurement_id=k, measurement_type=v["type"], inject_pos=v["inject"][0],
                             inject_neg=v["inject"][1], sense_pos=v["sense"][0], sense_neg=v["sense"][1])
@@ -251,18 +253,26 @@ def main():
         todo = todo[:a.limit]
     if not a.assemble_only and todo:
         print(f"{len(jobs)} geometries, {len(todo)} to run, {a.workers} workers", flush=True)
-        t0 = time.perf_counter()
-        with ProcessPoolExecutor(a.workers) as ex:
-            futs = {ex.submit(run_job, spec, j, cache): j for j in todo}
-            for k, fu in enumerate(as_completed(futs), 1):
-                j = futs[fu]
-                try:
-                    r = fu.result()
+        t0, k = time.perf_counter(), 0
+        for attempt in range(3):  # a worker killed (e.g. out of memory) breaks the pool: restart with the rest
+            with ProcessPoolExecutor(a.workers, max_tasks_per_child=1) as ex:
+                futs = {ex.submit(run_job, spec, j, cache): j for j in todo}
+                for fu in as_completed(futs):
+                    j = futs[fu]
+                    try:
+                        r = fu.result()
+                    except Exception as e:  # retried on the next attempt / invocation
+                        print(f"{j['geometry_id']}: ERROR {e!r}", flush=True)
+                        continue
+                    k += 1
                     msg = r["status"] + ("" if r["status"] == "ok" else f" ({r['reason']})")
-                    print(f"[{k}/{len(todo)} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
+                    print(f"[{k} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
                           f"{r.get('time_s', 0):.0f}s", flush=True)
-                except Exception as e:  # keep the sweep going; the job is retried on the next invocation
-                    print(f"[{k}/{len(todo)}] {j['geometry_id']}: ERROR {e!r}", flush=True)
+            todo = [j for j in todo if not (cache / f"{j['geometry_id']}.json").exists()]
+            if not todo:
+                break
+            a.workers = max(1, a.workers - 1)
+            print(f"{len(todo)} jobs failed; retrying with {a.workers} workers", flush=True)
     done = [json.loads(p.read_text()) for p in sorted(cache.glob("*.json"))]
     keep = {j["geometry_id"] for j in make_jobs(spec)}
     rec, failures = assemble(spec, out_dir, [r for r in done if r["job"]["geometry_id"] in keep])
