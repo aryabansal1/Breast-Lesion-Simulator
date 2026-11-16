@@ -66,6 +66,23 @@ def test_splits_never_share_geometry(synth, strategy):
     assert (covered == 1).all()
 
 
+def test_small_single_composition_splits_keep_training_data(synth):
+    _, ds = synth
+    c = ds.composition[0]
+    g3 = sorted(set(ds.geometry_id[ds.composition == c]))[:3]
+    small = ds.subset(np.flatnonzero(np.isin(ds.geometry_id, g3)))
+    for _, tr, _ in make_splits(small, "group_kfold", k=5):
+        itr, iva = inner_validation(small.subset(tr), member=0)
+        assert len(itr) and len(iva)
+    with pytest.raises(ValueError):
+        make_splits(small.subset(np.flatnonzero(np.isin(small.geometry_id, g3[:2]))), "group_kfold")
+
+
+def test_fixed_scale_jitter_is_applied():
+    s = NoiseModel(scale=2.0, scale_jitter=(0.5, 0.5))._pair_scale(3, np.random.default_rng(0))
+    np.testing.assert_allclose(s, 1.0)
+
+
 def test_noise_free_pair_is_exact_and_swap_negates(synth):
     _, ds = synth
     nm = NoiseModel(**QUIET)
