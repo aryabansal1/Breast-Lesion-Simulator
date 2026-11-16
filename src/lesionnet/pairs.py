@@ -88,8 +88,8 @@ def group_kfold_splits(ds: BreastDataset, k=5, seed=0):
     """K folds over geometry_id (a lesion record and its baseline are always on the same side of the split)."""
     geoms = np.array(sorted(set(ds.geometry_id)))
     k = min(k, len(geoms))
-    if k < 2:
-        raise ValueError("group k-fold needs at least two geometries")
+    if len(geoms) < 3:   # every outer training split must keep >= 2 geometries for inner validation
+        raise ValueError("group k-fold needs at least three geometries")
     perm = np.random.default_rng(seed).permutation(geoms)
     fold_of = {g: i % k for i, g in enumerate(perm)}
     f = np.array([fold_of[g] for g in ds.geometry_id])
@@ -114,8 +114,10 @@ def inner_validation(ds: BreastDataset, member: int, frac=0.2, seed=0):
         c = comps[member % len(comps)]
         return np.flatnonzero(ds.composition != c), np.flatnonzero(ds.composition == c)
     geoms = np.array(sorted(set(ds.geometry_id)))
+    if len(geoms) < 2:
+        raise ValueError("inner validation needs at least two geometries in the training split")
     rng = np.random.default_rng(seed + 1000 * member)
-    n_val = max(1, int(round(frac * len(geoms))))
+    n_val = min(max(1, int(round(frac * len(geoms)))), len(geoms) - 1)
     val = set(rng.permutation(geoms)[:n_val])
     m = np.array([g in val for g in ds.geometry_id])
     return np.flatnonzero(~m), np.flatnonzero(m)
