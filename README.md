@@ -33,7 +33,7 @@ macOS (Apple Silicon): the same commands work with the system/Homebrew Python â‰
 
 ```bash
 breastsim run configs/synthetic_quick.yaml --plot          # ~10 s smoke test
-breastsim run configs/victre_dense_paired.yaml --plot      # realistic anatomy, 8 electrodes, 7 freqs (~2 min)
+breastsim run configs/victre_dense_paired.yaml --plot      # realistic anatomy, 4 electrodes, 7 freqs (~2 min)
 breastsim run configs/victre_dense_bilateral.yaml          # mirrored left/right
 breastsim sensitivity configs/victre_dense_sensitivity.yaml
 breastsim plot outputs/victre_dense_paired --render
@@ -67,7 +67,8 @@ wearable layout is hard-coded.
 
 The simulator meshes the voxel anatomy into tetrahedra with a global element size `mesh.h_mm`, plus a finer
 `mesh.tumour_h_mm` around the tumour. To find the right size we ran the full dense-VICTRE paired case
-(both breasts, 7 frequencies, 44 electrode measurements per side) at h = 3, 2.5, 2, 1.5, 1.25, 1 and 0.75 mm
+(both breasts, 7 frequencies, 44 electrode measurements per side, with the earlier 8-electrode layout; the
+default configs now use 4 electrodes) at h = 3, 2.5, 2, 1.5, 1.25, 1 and 0.75 mm
 (tumour region at h/2). Each level was compared against the finest one (0.75 mm, 1.1 M nodes).
 
 Two different outputs converge differently:
