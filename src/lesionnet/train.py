@@ -115,15 +115,18 @@ def fit_temperature(logits, y):
     return float(np.clip(log_t.exp().item(), 0.05, 20.0))
 
 
-def train_member(ds_tr: BreastDataset, ds_va: BreastDataset, cfg, noise: NoiseModel, dirs, seed, log=print):
-    """Train one network. Every epoch logs training loss (running, train mode), training loss and validation loss
+def train_member(ds_tr: BreastDataset, ds_va: BreastDataset, cfg, noise: NoiseModel, dirs, seed, log=print,
+                 dirs_val=None):
+    """Train one network (``dirs``: training anatomy directions; ``dirs_val``: for validation nuisance, default
+    ``dirs``). Every epoch logs training loss (running, train mode), training loss and validation loss
     on fixed held-out pair sets (eval mode) and validation AUROC; early-stops on validation loss."""
     tc, mc, mode = cfg["train"], cfg["model"], cfg["pair_mode"]
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
     model = PairDiffNet(len(ds_tr.frequency_hz), len(ds_tr.measurement_id), **mc)
     model.set_feature_scale(feature_scale(ds_tr, noise, dirs, mode, tc["scale_fit_rounds"], seed + 1))
-    Xva, yva, _, _ = fixed_pair_set(ds_va, noise, dirs, mode, tc["val_draws"], seed + 2)
+    Xva, yva, _, _ = fixed_pair_set(ds_va, noise, dirs if dirs_val is None else dirs_val, mode, tc["val_draws"],
+                                    seed + 2)
     Xtr_eval, ytr_eval, _, _ = fixed_pair_set(ds_tr, noise, dirs, mode, 1, seed + 3)
     opt = torch.optim.AdamW(model.parameters(), lr=tc["lr"], weight_decay=tc["weight_decay"])
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=tc["epochs"])
@@ -173,7 +176,9 @@ def train_ensemble(ds: BreastDataset, cfg, noise, dirs, seed, log=print):
         tr, va = inner_validation(ds, k, cfg["train"]["val_frac"], seed)
         vc = ",".join(sorted(set(ds.composition[va])))
         log(f"  member {k}: train {len(tr)} records, validation {len(va)} records ({vc})")
-        m = train_member(ds.subset(tr), ds.subset(va), cfg, noise, dirs, seed + 7919 * (k + 1), log)
+        ds_tr = ds.subset(tr)
+        dirs_tr = anatomy_directions(ds_tr.Z, ds_tr.composition, ds_tr.baselines)  # no validation anatomy in training
+        m = train_member(ds_tr, ds.subset(va), cfg, noise, dirs_tr, seed + 7919 * (k + 1), log, dirs_val=dirs)
         m.val_composition = vc
         ens.members.append(m)
     return ens
