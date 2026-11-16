@@ -230,9 +230,12 @@ def nested_dissection_order(a):
         import pymetis
     except ImportError:
         return None
-    g = (a != 0).tocsr().astype(np.int8)
+    a = a.tocsr()
+    g = sp.csr_matrix((np.ones(a.nnz, np.int8), a.indices, a.indptr), shape=a.shape)
+    g = (g + g.T).tocsr()  # METIS needs a symmetric graph; numerical cancellation can break symmetry of a != 0
     g.setdiag(0)
     g.eliminate_zeros()
+    g.sort_indices()
     if hasattr(pymetis, "CSRAdjacency"):
         perm, _ = pymetis.nested_dissection(pymetis.CSRAdjacency(g.indptr, g.indices))
     else:

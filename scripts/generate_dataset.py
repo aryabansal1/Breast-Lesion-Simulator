@@ -2,7 +2,7 @@
 
 One job = one (composition, lesion shape, location). It meshes the breast once (local refinement at the
 lesion), then solves the lesion-absent case and one lesion-present case per lesion material on that same
-mesh at every frequency. Jobs run in parallel worker processes (one BLAS thread each) and are cached in
+mesh at every frequency. Jobs run in parallel, one process per job (one BLAS thread each) and are cached in
 <out_dir>/jobs/, so an interrupted sweep resumes where it stopped.
 
 Usage: python scripts/generate_dataset.py configs/dataset_v1.yaml --workers 6 [--limit N] [--only dense]
@@ -18,9 +18,10 @@ import copy  # noqa: E402
 import datetime as dt  # noqa: E402
 import itertools  # noqa: E402
 import json  # noqa: E402
+import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
-from concurrent.futures import ProcessPoolExecutor, as_completed  # noqa: E402
+from concurrent.futures import ThreadPoolExecutor  # noqa: E402
 from pathlib import Path  # noqa: E402
 
 import numpy as np  # noqa: E402
@@ -256,6 +257,8 @@ def main():
     ap.add_argument("--limit", type=int, help="run at most N new jobs (pilot)")
     ap.add_argument("-o", "--out", help="override out_dir")
     ap.add_argument("--assemble-only", action="store_true")
+    ap.add_argument("--retries", type=int, default=3)
+    ap.add_argument("--run-one", help=argparse.SUPPRESS)
     a = ap.parse_args()
     spec = yaml.safe_load(Path(a.spec).read_text())
     out_dir = ROOT / (a.out or spec["out_dir"])
@@ -268,28 +271,31 @@ def main():
     todo.sort(key=lambda j: -COST.get(j["composition"], 0))
     if a.limit is not None:
         todo = todo[:a.limit]
+    if a.run_one:
+        run_job(spec, next(j for j in jobs if j["geometry_id"] == a.run_one), cache)
+        return
     if not a.assemble_only and todo:
         print(f"{len(jobs)} geometries, {len(todo)} to run, {a.workers} workers", flush=True)
-        t0, k = time.perf_counter(), 0
-        for attempt in range(3):  # a worker killed (e.g. out of memory) breaks the pool: restart with the rest
-            with ProcessPoolExecutor(a.workers, max_tasks_per_child=1) as ex:
-                futs = {ex.submit(run_job, spec, j, cache): j for j in todo}
-                for fu in as_completed(futs):
-                    j = futs[fu]
-                    try:
-                        r = fu.result()
-                    except Exception as e:  # retried on the next attempt / invocation
-                        print(f"{j['geometry_id']}: ERROR {e!r}", flush=True)
-                        continue
-                    k += 1
+        t0, done_n = time.perf_counter(), [0]
+
+        def launch(j):
+            # one process per job: a native crash (seen intermittently inside METIS) only loses that job
+            for attempt in range(1, a.retries + 1):
+                p = subprocess.run([sys.executable, __file__, a.spec, "--run-one", j["geometry_id"],
+                                    *(["-o", a.out] if a.out else [])], capture_output=True, text=True)
+                f = cache / f"{j['geometry_id']}.json"
+                if f.exists():
+                    r = json.loads(f.read_text())
+                    done_n[0] += 1
                     msg = r["status"] + ("" if r["status"] == "ok" else f" ({r['reason']})")
-                    print(f"[{k} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
+                    print(f"[{done_n[0]}/{len(todo)} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
                           f"{r.get('time_s', 0):.0f}s", flush=True)
-            todo = [j for j in todo if not (cache / f"{j['geometry_id']}.json").exists()]
-            if not todo:
-                break
-            a.workers = max(1, a.workers - 1)
-            print(f"{len(todo)} jobs failed; retrying with {a.workers} workers", flush=True)
+                    return
+                print(f"{j['geometry_id']}: attempt {attempt} failed (exit {p.returncode}): "
+                      f"{p.stderr.strip().splitlines()[-1:] or ''}", flush=True)
+
+        with ThreadPoolExecutor(a.workers) as ex:
+            list(ex.map(launch, todo))
     done = [json.loads(p.read_text()) for p in sorted(cache.glob("*.json"))]
     keep = {j["geometry_id"] for j in make_jobs(spec)}
     rec, failures = assemble(spec, out_dir, [r for r in done if r["job"]["geometry_id"] in keep])
