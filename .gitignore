@@ -8,3 +8,5 @@ outputs/
 !examples/outputs/
 *.raw
 *.raw.gz
+!data/lesions/*.raw.gz
+data/datasets/*/jobs/
