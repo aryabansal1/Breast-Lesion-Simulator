@@ -119,7 +119,9 @@ learn the *shape* of lesion effects (which measurements and which frequency/phas
 Test-time nuisance uses anatomy directions computed from all compositions (`dirs_all` in `train.evaluate_split`),
 including the held-out one. This is not label leakage — no test record is seen in training and the directions
 are only used to *generate* nuisance — and it makes the test harder: the model faces asymmetry directions it
-never saw. Training uses only training-composition directions.
+never saw. Training nuisance and `feature_scale` use only the directions of the compositions an ensemble member
+actually trains on (its validation composition is excluded); its validation nuisance uses the directions of the
+whole outer training split, mirroring the test protocol.
 
 ---
 
@@ -172,7 +174,8 @@ Inside every outer training split, `pairs.inner_validation` holds out a validati
 gradient updates:
 * ≥ 2 compositions in the training split → one whole composition (rotated across ensemble members), so early
   stopping selects for *cross-anatomy* generalisation;
-* otherwise → 20 % of geometries (`val_frac`), with each lesion record kept with its baseline.
+* otherwise → 20 % of geometries (`val_frac`, at least one, never all), with each lesion record kept with its
+  baseline. Geometry K-fold therefore needs at least three geometries.
 
 Every epoch `train.train_member` passes both sets through the network in eval mode and logs, to
 `training_history.csv` (columns `epoch, train_loss_running, train_loss, val_loss, val_auroc, lr, time_s, split,
