@@ -129,6 +129,19 @@ def run_job(spec, job, cache_dir):
     return out
 
 
+def detectability_summary(eff, rec, md, thresholds=(0.001, 0.005, 0.01)):
+    """Per composition x shape x depth: largest relative |Z| change over all tetrapolar measurements
+    except the near-balanced across_vertical, and the fraction of lesion records exceeding each threshold."""
+    tetra = md[(md.measurement_type == "tetrapolar") & (md.measurement_id != "across_vertical")].measurement_id
+    e = eff[eff.measurement_id.isin(tetra)].assign(a=lambda d: d.rel_d_mag.abs())
+    best = e.groupby("record_id").a.max().rename("max_rel_d_mag").reset_index().merge(rec, on="record_id")
+    keys = ["composition", "lesion_shape_id", "lesion_depth_mm"]
+    out = best.groupby(keys).max_rel_d_mag.agg(n="size", median="median", min="min", max="max")
+    for t in thresholds:
+        out[f"frac_above_{t * 100:g}pct"] = best.assign(x=best.max_rel_d_mag > t).groupby(keys).x.mean()
+    return out.reset_index()
+
+
 def assemble(spec, out_dir, results):
     lib = MaterialLibrary.load(ROOT / spec["base"]["materials"]["library"])
     shapes, classes = spec["lesion_shapes"], spec["lesion_materials"]
@@ -203,7 +216,10 @@ def assemble(spec, out_dir, results):
             d_mag_ohm=np.abs(zp) - np.abs(za), rel_d_mag=np.abs(zp) / np.abs(za) - 1,
             d_phase_deg=np.degrees(np.angle(zp) - np.angle(za)))))
     if eff:
-        pd.concat(eff, ignore_index=True).to_csv(out_dir / "lesion_effect.csv", index=False, float_format="%.6g")
+        eff = pd.concat(eff, ignore_index=True)
+        eff.to_csv(out_dir / "lesion_effect.csv", index=False, float_format="%.6g")
+        detectability_summary(eff, rec, md).to_csv(out_dir / "detectability_summary.csv", index=False,
+                                                   float_format="%.4g")
     freqs = sorted(z.frequency_hz.unique())
     mids = list(md.measurement_id)
     Z = np.full((len(rec), len(freqs), len(mids)), np.nan + 0j)

@@ -58,5 +58,6 @@ def test_tiny_sweep_records_baseline_and_lesions(tmp_path):
     assert len(z) == 3 * len(pd.read_csv(tmp_path / "measurement_definitions.csv"))
     eff = pd.read_csv(tmp_path / "lesion_effect.csv")
     assert (eff.d_mag_ohm.abs() > 0).any()
+    assert len(pd.read_csv(tmp_path / "detectability_summary.csv")) == 1
     t = np.load(tmp_path / "tensors.npz")
     assert t["Z"].shape == (3, 1, 7) and np.isfinite(t["Z"]).all()
