@@ -26,31 +26,15 @@ electrodes:
     s: 0.55
     radius_mm: 5
   - id: E2
-    clock_hour: 1.5
-    s: 0.55
-    radius_mm: 5
-  - id: E3
     clock_hour: 3
     s: 0.55
     radius_mm: 5
-  - id: E4
-    clock_hour: 4.5
-    s: 0.55
-    radius_mm: 5
-  - id: E5
+  - id: E3
     clock_hour: 6
     s: 0.55
     radius_mm: 5
-  - id: E6
-    clock_hour: 7.5
-    s: 0.55
-    radius_mm: 5
-  - id: E7
+  - id: E4
     clock_hour: 9
-    s: 0.55
-    radius_mm: 5
-  - id: E8
-    clock_hour: 10.5
     s: 0.55
     radius_mm: 5
 measurements:
@@ -59,31 +43,17 @@ measurements:
   - id: across_vertical
     inject:
     - E1
-    - E5
+    - E3
     sense:
     - E2
     - E4
-  - id: across_horizontal
-    inject:
-    - E3
-    - E7
-    sense:
-    - E4
-    - E6
-  - id: upper_outer
+  - id: bipolar_E1E3
     inject:
     - E1
     - E3
     sense:
-    - E2
-    - E8
-  - id: bipolar_E1E5
-    inject:
     - E1
-    - E5
-    sense:
-    - E1
-    - E5
+    - E3
   pattern: adjacent
 tumour:
   shape: sphere

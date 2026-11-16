@@ -23,7 +23,7 @@ from breastsim.fem import CEMSystem, drive_pattern
 from breastsim.materials import MaterialLibrary
 an = Anatomy.from_npz("{anatomy}")
 t = time.perf_counter(); am = build_mesh(an, h_mm={h}); t_mesh = time.perf_counter() - t
-clocks = [12, 1.5, 3, 4.5, 6, 7.5, 9, 10.5]
+clocks = [12, 3, 6, 9]
 specs = [dict(id=f"E{{i}}", clock_hour=c, s=0.55, radius_mm=5) for i, c in enumerate(clocks)]
 els = place_electrodes(am.mesh.nodes, am.skin_facets, am.landmarks, specs)
 lib = MaterialLibrary.load("{root}/data/materials/library.yaml")
@@ -34,10 +34,11 @@ t = time.perf_counter()
 s = CEMSystem(am.mesh.nodes, am.mesh.tets, lut[am.mesh.labels], [e.facets for e in els], 5e-3)
 t_asm = time.perf_counter() - t
 s.factorize()
-cur = np.stack([np.ravel(drive_pattern(8, i, (i + 1) % 8, 1e-4)) for i in range(8)], 1)
+L = len(clocks)
+cur = np.stack([np.ravel(drive_pattern(L, i, (i + 1) % L, 1e-4)) for i in range(L)], 1)
 sol = s.solve(cur)
 print(json.dumps(dict(h_mm={h}, nodes=am.stats["nodes"], tets=am.stats["tets"], unknowns=s.A.shape[0],
-    mesh_s=t_mesh, assemble_s=t_asm, factor_s=s.factor_time, solve_8rhs_s=sol.diagnostics["solve_time_s"],
+    mesh_s=t_mesh, assemble_s=t_asm, factor_s=s.factor_time, solve_rhs_s=sol.diagnostics["solve_time_s"],
     lu_nnz=sol.diagnostics["lu_nnz"], max_rel_residual=float(np.max(sol.diagnostics["relative_residual"])),
     peak_rss_mb=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024 if sys.platform != "darwin" else 1024**2))))
 """

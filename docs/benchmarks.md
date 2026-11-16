@@ -1,21 +1,21 @@
 # Benchmarks
 
-`python scripts/benchmark.py` → `docs/benchmarks.csv`. One CEM system (8 electrodes, dense VICTRE phantom,
-62.5 kHz), METIS nested-dissection ordering + SuperLU, 8 right-hand sides. Measured on the development VM
+`python scripts/benchmark.py` → `docs/benchmarks.csv`. One CEM system (4 electrodes at 12/3/6/9 o'clock, dense VICTRE
+phantom, 62.5 kHz), METIS nested-dissection ordering + SuperLU, 4 right-hand sides. Measured on the development VM
 (Linux x86_64, 8 vCPU); an Apple-Silicon Mac should be similar or faster. **Re-run on your Mac and commit the CSV.**
 
-| h (mm) | nodes | tets | factor (s) | solve 8 RHS (s) | LU nnz | peak RSS (MB) |
+| h (mm) | nodes | tets | factor (s) | solve 4 RHS (s) | LU nnz | peak RSS (MB) |
 |---|---|---|---|---|---|---|
-| 4.0 | 4,649 | 22,368 | 0.05 | 0.004 | 0.54 M | 135 |
-| 3.0 | 10,636 | 54,030 | 0.26 | 0.02 | 2.9 M | 234 |
-| 2.5 | 17,460 | 90,948 | 0.58 | 0.04 | 5.8 M | 336 |
-| 2.0 | 33,121 | 177,504 | 1.76 | 0.09 | 13.0 M | 624 |
-| 1.5 | 77,796 | 428,892 | 5.8 | 0.30 | 40.4 M | 1,726 |
+| 4.0 | 4,649 | 22,368 | 0.15 | 0.005 | 0.55 M | 137 |
+| 3.0 | 10,636 | 54,030 | 0.48 | 0.02 | 2.9 M | 236 |
+| 2.5 | 17,460 | 90,948 | 0.67 | 0.03 | 5.8 M | 340 |
+| 2.0 | 33,121 | 177,504 | 1.66 | 0.06 | 13.5 M | 642 |
+| 1.5 | 77,796 | 428,892 | 5.9 | 0.18 | 40.3 M | 1,698 |
 
 Max relative residual in every case < 1e-12.
 
 Full paired run `configs/victre_dense_paired.yaml` (2 mm + 1 mm refinement around the tumour → 70,423 nodes /
-388,170 tets, 7 frequencies × 2 cases = 14 factorisations, 44 measurements): **~100 s, peak RSS 5.9 GB**
+388,170 tets, 7 frequencies × 2 cases = 14 factorisations, 6 measurements): **~107 s, peak RSS 5.9 GB**
 (field export included). Direct (LU) memory grows much faster than the mesh (17.9 GB at h = 1.25 mm), so for
 global meshes finer than ~1.5 mm use the iterative solver (`solver: {method: iterative}`), whose memory grows
 roughly linearly (1 mm: 4.1 GB, 0.75 mm: 8.8 GB for the full paired run).
@@ -24,6 +24,10 @@ Solver note: SciPy's default COLAMD ordering took 215 s for the 10k-node system 
 the METIS ordering is required (`pymetis` dependency, with an MMD fallback).
 
 ## Mesh convergence on the dense VICTRE breast
+
+This study was run with the earlier 8-electrode layout (12, 1.5, ..., 10.5 o'clock) and its 44 measurements;
+the default configs now use 4 electrodes, so pair names below (`upper_outer`, `bipolar_E1E5`, ...) refer to
+that layout. Re-run `scripts/convergence.py` to refresh it for the 4-electrode configs.
 
 `python scripts/convergence.py configs/victre_dense_paired.yaml -o outputs/convergence` runs the full paired
 case (bilateral, 7 frequencies, 44 measurements per side → 308 complex \(Z\) values per case) at each mesh
