@@ -175,7 +175,7 @@ def detectability_summary(eff, rec, md, thresholds=(0.001, 0.005, 0.01)):
     return out.reset_index()
 
 
-def assemble(spec, out_dir, results):
+def assemble(spec, out_dir, results, n_planned=None):
     lib = MaterialLibrary.load(ROOT / spec["base"]["materials"]["library"])
     shapes, classes = spec["lesion_shapes"], spec["lesion_materials"]
     records, zrows, failures, electrodes, meas_defs = [], [], [], [], {}
@@ -277,6 +277,7 @@ def assemble(spec, out_dir, results):
     (out_dir / "provenance.json").write_text(json.dumps(dict(
         breastsim_version=__version__, git_commit=git_commit(), created=dt.datetime.now().astimezone().isoformat(),
         material_library_sha256=lib.sha256, n_geometries=len(results), n_rejected=len(failures),
+        n_not_run=(n_planned or len(results)) - len(results),
         n_records=len(rec), total_job_time_s=sum(r.get("time_s", 0.0) for r in results)), indent=1))
     return rec, failures
 
@@ -327,15 +328,22 @@ def main():
                     msg = r["status"] + ("" if r["status"] == "ok" else f" ({r['reason']})")
                     print(f"[{done_n[0]}/{len(todo)} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
                           f"{r.get('time_s', 0):.0f}s", flush=True)
-                    return
+                    return True
                 print(f"{j['geometry_id']}: attempt {attempt} failed (exit {p.returncode}): "
                       f"{next((ln for ln in p.stderr.splitlines() if 'Error' in ln), '')}", flush=True)
+            return False
 
         with ThreadPoolExecutor(a.workers) as ex:
-            list(ex.map(launch, todo))
-    done = [r for j in make_jobs(spec)
+            ok = list(ex.map(launch, todo))
+        failed = [j["geometry_id"] for j, o in zip(todo, ok) if not o]
+        if failed:
+            raise SystemExit(f"{len(failed)} geometries failed all {a.retries} attempts; not assembling: "
+                             + ", ".join(failed))
+    done = [r for j in jobs
             if (r := read_cache(cache / f"{j['geometry_id']}.json", job_fingerprint(spec, j))) is not None]
-    rec, failures = assemble(spec, out_dir, done)
+    if len(done) < len(jobs):
+        print(f"warning: {len(jobs) - len(done)} of {len(jobs)} geometries not run yet; assembling a partial dataset")
+    rec, failures = assemble(spec, out_dir, done, n_planned=len(jobs))
     print(f"wrote {out_dir}: {len(rec)} records ({int(rec.lesion_present.sum()) if len(rec) else 0} with lesion), "
           f"{len(failures)} rejected geometries")
 
