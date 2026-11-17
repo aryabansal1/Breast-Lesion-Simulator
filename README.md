@@ -16,7 +16,9 @@ record through surface electrodes, with and without an inserted tumour.
 - CSV / JSON / YAML outputs, VTU fields (potential, |E|, |J|, labels, tumour, electrodes), spectra plots, renders.
 - CPU only (SciPy SuperLU + METIS ordering); runs on an Apple-Silicon laptop.
 
-**Not included (by design):** machine learning, classification, diagnostic thresholds, temperature, mammography/DBT.
+**Not included in the simulator (by design):** machine learning, classification, diagnostic thresholds, temperature,
+mammography/DBT. A separate research package, `src/lesionnet/`, trains a binary lesion-flag network on the
+simulator's datasets (see [Lesion-flag network](#lesion-flag-network-separate-package)).
 The simulator does not establish clinical detection performance; see
 [`docs/assumptions_and_limitations.md`](docs/assumptions_and_limitations.md).
 
@@ -116,9 +118,25 @@ Reproduce with `python scripts/convergence.py configs/victre_dense_paired.yaml -
 --levels 2:1 1:0.5 ...`; `--reuse` skips levels already run with the same config and solver. Full table:
 [`docs/benchmarks.md`](docs/benchmarks.md); raw data: [`examples/victre_convergence/`](examples/victre_convergence).
 
+## Lesion-flag network (separate package)
+
+`src/lesionnet/` consumes a dataset written by `scripts/generate_dataset.py` and trains a side-symmetric network
+that flags whether a left/right pair of breasts contains a lesion (present vs absent only; no localisation, no
+malignant-vs-benign). Design decisions, literature and limitations: [`docs/nn_design.md`](docs/nn_design.md).
+
+```bash
+pip install -e ".[nn]"     # torch + scikit-learn (CPU is enough)
+python scripts/train_lesion_net.py configs/nn_v1.yaml                          # data/datasets/bioimpedance_v1
+python scripts/train_lesion_net.py configs/nn_v1.yaml --synthetic --quick -o outputs/nn_synth   # smoke test
+```
+
+Each run writes held-out test metrics per split, per-epoch training/validation loss (`training_history.csv`,
+`loss_curves.png`), noise sweeps, effect strata and checkpoints.
+
 ## Repository layout
 
 ```
+src/lesionnet/   data.py pairs.py noise.py model.py train.py metrics.py (lesion-flag NN, docs/nn_design.md)
 src/breastsim/   anatomy.py mesh.py electrodes.py tumour.py materials.py fem.py simulate.py io.py plotting.py cli.py
 data/anatomy/    downsampled uncompressed VICTRE phantoms (CC0)
 data/materials/  library.yaml (+ source tables / fits)
@@ -139,7 +157,8 @@ python scripts/benchmark.py
 ## Docs
 [data inventory](docs/data_inventory.md) · [materials](docs/materials.md) ·
 [assumptions & missing data](docs/assumptions_and_limitations.md) ·
-[verification & validation procedure](docs/validation_procedure.md) · [benchmarks](docs/benchmarks.md)
+[verification & validation procedure](docs/validation_procedure.md) · [benchmarks](docs/benchmarks.md) ·
+[lesion-flag network design](docs/nn_design.md)
 
 ## Licences of inputs
 VICTRE / breastPhantom: CC0 (US FDA). IT'IS database values: © IT'IS Foundation, cite DOI 10.13099/VIP21000-05-0.

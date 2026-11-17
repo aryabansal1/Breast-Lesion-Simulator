@@ -1,0 +1,43 @@
+# Lesion-flag network (binary: lesion present in either breast vs. both lesion-free). See docs/nn_design.md.
+# Run: python scripts/train_lesion_net.py configs/nn_v1.yaml
+data: data/datasets/bioimpedance_v1
+out_dir: outputs/nn_v1
+pair_mode: same_mesh       # contralateral = lesion-free record on the same mesh (cross_mesh: another geometry)
+split: auto                # loco (leave-one-composition-out) when >= 2 compositions, else group_kfold
+k_folds: 5
+seed: 0
+noise:                     # ASSUMED nuisance magnitudes (relative); calibrate against hardware / volunteer data
+  meas_sigma: 1.0e-4       # instrument noise per reading (80 dB SNR)
+  placement_sigma: 2.0e-3  # electrode re-placement gain per electrode
+  placement_phase_frac: 0.1
+  contact_sigma: 2.0e-2    # contact-impedance drift (bipolar readings)
+  contact_alpha: [0.5, 0.9]
+  contact_tetrapolar_leak: 0.01
+  anat_sigma: 3.0e-3       # left/right anatomical asymmetry (rms)
+  anat_smooth_frac: 0.5
+  scale_jitter: [0.5, 2.0] # training-time domain randomisation of every sigma
+model:
+  conv_channels: 16
+  hidden: 64
+  n_blocks: 2
+  dropout: 0.1
+  symmetrize: true
+  energy_features: true
+train:
+  ensemble: 5
+  epochs: 200
+  batch_size: 256
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  patience: 40
+  pairs_per_epoch_mult: 2
+  grad_clip: 1.0
+  scale_fit_rounds: 20
+  val_draws: 4
+  val_frac: 0.2
+eval:
+  test_draws: 4
+  noise_sweep: [0.25, 0.5, 1.0, 2.0, 4.0]   # multiply every sigma at test time
+  anat_sweep: [0.0, 1.0e-3, 3.0e-3, 1.0e-2, 3.0e-2]   # test-time anatomical asymmetry only
+  effect_bins: [0, 1.0e-4, 3.0e-4, 1.0e-3, 3.0e-3, 1.0e-2, 1.0]
+  baselines: true
