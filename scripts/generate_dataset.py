@@ -16,6 +16,8 @@ for _v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"):
 import argparse  # noqa: E402
 import copy  # noqa: E402
 import datetime as dt  # noqa: E402
+import functools  # noqa: E402
+import hashlib  # noqa: E402
 import itertools  # noqa: E402
 import json  # noqa: E402
 import subprocess  # noqa: E402
@@ -68,6 +70,20 @@ def job_config(spec, job):
     return cfg
 
 
+@functools.lru_cache
+def _library_sha(path):
+    return MaterialLibrary.load(path).sha256
+
+
+def job_fingerprint(spec, job):
+    """Hash of every input that determines a job's result, so a cached job from a changed sweep is re-run."""
+    key = dict(job=job, base=spec["base"], anatomy=spec["compositions"][job["composition"]],
+               shape=spec["lesion_shapes"][job["shape_id"]], lesion_materials=list(spec["lesion_materials"]),
+               electrode_margin_mm=spec.get("electrode_margin_mm", 1.0),
+               library_sha256=_library_sha(str(ROOT / spec["base"]["materials"]["library"])))
+    return hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
+
+
 def record_id(gid, material):
     return f"{gid}__{material or 'none'}"
 
@@ -78,23 +94,25 @@ def write_cache(path, out):
     os.replace(tmp, path)
 
 
-def read_cache(path):
+def read_cache(path, fingerprint):
     try:
-        return json.loads(Path(path).read_text())
+        r = json.loads(Path(path).read_text())
     except (FileNotFoundError, json.JSONDecodeError):
         return None
+    return r if r.get("fingerprint") == fingerprint else None
 
 
 def run_job(spec, job, cache_dir):
     path = Path(cache_dir) / f"{job['geometry_id']}.json"
-    cached = read_cache(path)
+    fp = job_fingerprint(spec, job)
+    cached = read_cache(path, fp)
     if cached is not None:
         return cached
     t0 = time.perf_counter()
     cfg = job_config(spec, job)
     lib = MaterialLibrary.load(cfg["materials"]["library"])
     anat = Anatomy.from_npz(cfg["anatomy"]["path"], side="left")
-    out = dict(job=job, status="ok")
+    out = dict(job=job, status="ok", fingerprint=fp)
     try:
         am, els, cases, trep, mesh_time, _ = prepare_side(cfg, anat, lib, lambda *a: None)
     except ValueError as e:  # lesion rejected (touches skin/air/boundary or too close to an electrode)
@@ -282,7 +300,7 @@ def main():
     jobs = make_jobs(spec)
     if a.only:
         jobs = [j for j in jobs if j["composition"] in a.only]
-    todo = [j for j in jobs if read_cache(cache / f"{j['geometry_id']}.json") is None]
+    todo = [j for j in jobs if read_cache(cache / f"{j['geometry_id']}.json", job_fingerprint(spec, j)) is None]
     todo.sort(key=lambda j: -COST.get(j["composition"], 0))
     if a.limit is not None:
         todo = todo[:a.limit]
@@ -303,7 +321,7 @@ def main():
                 except subprocess.TimeoutExpired:
                     print(f"{j['geometry_id']}: attempt {attempt} timed out after {a.job_timeout:.0f}s", flush=True)
                     continue
-                r = read_cache(cache / f"{j['geometry_id']}.json")
+                r = read_cache(cache / f"{j['geometry_id']}.json", job_fingerprint(spec, j))
                 if r is not None:
                     done_n[0] += 1
                     msg = r["status"] + ("" if r["status"] == "ok" else f" ({r['reason']})")
@@ -315,9 +333,9 @@ def main():
 
         with ThreadPoolExecutor(a.workers) as ex:
             list(ex.map(launch, todo))
-    done = [r for p in sorted(cache.glob("*.json")) if (r := read_cache(p)) is not None]
-    keep = {j["geometry_id"] for j in make_jobs(spec)}
-    rec, failures = assemble(spec, out_dir, [r for r in done if r["job"]["geometry_id"] in keep])
+    done = [r for j in make_jobs(spec)
+            if (r := read_cache(cache / f"{j['geometry_id']}.json", job_fingerprint(spec, j))) is not None]
+    rec, failures = assemble(spec, out_dir, done)
     print(f"wrote {out_dir}: {len(rec)} records ({int(rec.lesion_present.sum()) if len(rec) else 0} with lesion), "
           f"{len(failures)} rejected geometries")
 
