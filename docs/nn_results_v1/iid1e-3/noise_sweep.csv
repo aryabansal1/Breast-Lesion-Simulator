@@ -1,0 +1,13 @@
+split,sweep,value,method,auroc
+loco_dense,all_sigmas_x,1.0,nn,0.9953463030771298
+loco_dense,all_sigmas_x,1.0,energy,0.9900207437516796
+loco_dense,all_sigmas_x,1.0,logreg,0.9274651051464661
+loco_fatty,all_sigmas_x,1.0,nn,1.0
+loco_fatty,all_sigmas_x,1.0,energy,1.0
+loco_fatty,all_sigmas_x,1.0,logreg,0.9991138787721126
+loco_hetero,all_sigmas_x,1.0,nn,0.9950965711805555
+loco_hetero,all_sigmas_x,1.0,energy,0.9947970920138889
+loco_hetero,all_sigmas_x,1.0,logreg,0.9562619357638888
+loco_scattered,all_sigmas_x,1.0,nn,1.0
+loco_scattered,all_sigmas_x,1.0,energy,0.9999339473855359
+loco_scattered,all_sigmas_x,1.0,logreg,0.996703466441207

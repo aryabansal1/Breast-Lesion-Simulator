@@ -87,7 +87,7 @@ def feature_scale(ds: BreastDataset, noise, dirs, mode, rounds, seed):
     b = a if mode == "same_mesh" else other_baseline(ds, a, rng)
     X = sample_pair_features(ds, a, b, noise, dirs, rng, swap=True)
     s = np.sqrt(np.mean(X.astype(np.float64) ** 2, axis=0))
-    return np.maximum(s, 1e-12).astype(np.float32)
+    return np.maximum(s, 1e-6).astype(np.float32)   # floor: noise-free runs leave lesion-free pairs at exactly 0
 
 
 # ----------------------------------------------------------------------------------------------- training
@@ -190,8 +190,9 @@ class EnergyDetector:
     left/right log-ratio, S = Ledoit-Wolf covariance of lesion-free pairs (Hotelling-type statistic)."""
 
     def fit(self, Xneg):
-        lw = LedoitWolf().fit(Xneg.reshape(len(Xneg), -1))
-        self.L = np.linalg.cholesky(lw.precision_)
+        C = LedoitWolf().fit(Xneg.reshape(len(Xneg), -1).astype(np.float64)).covariance_
+        C = C + np.eye(len(C)) * max(1e-12, 1e-9 * np.trace(C) / len(C))   # noise-free runs: C == 0
+        self.L = np.linalg.cholesky(np.linalg.inv(C))
         return self
 
     def whiten(self, X):
@@ -269,21 +270,29 @@ def evaluate_split(name, ds, tr, te, cfg, noise, log=print):
 
 
 def strata_table(pred: pd.DataFrame, records: pd.DataFrame, effect_bins):
-    """AUROC and sensitivity (calibrated 0.5 threshold) per lesion subgroup vs all lesion-free pairs of the split."""
+    """Per subgroup: AUROC, sensitivity and specificity (calibrated 0.5 threshold). Negatives are the lesion-free
+    pairs of the same split whose geometry shares the subgroup value (shape, depth, composition); for lesion-only
+    attributes (material, effect bin) all lesion-free pairs of the split."""
     meta = records.set_index("record_id")
     cols = [c for c in ("lesion_material", "lesion_shape_id", "lesion_depth_mm", "composition") if c in meta]
     p = pred.join(meta[cols], on="record_id")
     p["clean_effect_bin"] = pd.cut(p.clean_effect_rms, effect_bins).astype(str)
+    methods = [c[6:] for c in p.columns if c.startswith("score_") and c[6:] in CALIBRATED]
     out = []
     for col in cols + ["clean_effect_bin"]:
         for (split, val), g in p[p.label == 1].groupby(["split", col]):
             neg = p[(p.split == split) & (p.label == 0)]
+            same = neg[neg[col].astype(str) == str(val)]
+            neg = same if len(same) else neg
             yy = np.r_[np.ones(len(g)), np.zeros(len(neg))]
-            ss = np.r_[g.score_nn, neg.score_nn]
-            out.append(dict(split=split, stratum=col, value=str(val), n_pos=len(g),
-                            median_clean_effect=float(g.clean_effect_rms.median()),
-                            auroc_nn=binary_metrics(yy, ss).get("auroc", np.nan),
-                            sensitivity_nn=float(np.mean(g.score_nn >= 0.5))))
+            row = dict(split=split, stratum=col, value=str(val), n_pos=len(g), n_neg=len(neg),
+                       median_clean_effect=float(g.clean_effect_rms.median()))
+            for k in methods:
+                ss = np.r_[g[f"score_{k}"], neg[f"score_{k}"]]
+                row[f"auroc_{k}"] = binary_metrics(yy, ss).get("auroc", np.nan)
+                row[f"sensitivity_{k}"] = float(np.mean(g[f"score_{k}"] >= 0.5))
+                row[f"specificity_{k}"] = float(np.mean(neg[f"score_{k}"] < 0.5))
+            out.append(row)
     return pd.DataFrame(out)
 
 

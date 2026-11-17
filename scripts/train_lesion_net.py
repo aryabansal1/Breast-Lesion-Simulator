@@ -28,6 +28,10 @@ def main():
     ap.add_argument("--quick", action="store_true", help="tiny ensemble / few epochs (smoke test)")
     ap.add_argument("--no-final", action="store_true", help="skip the final all-data ensemble (model.pt)")
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--split", choices=["auto", "loco", "group_kfold"], help="override config 'split'")
+    ap.add_argument("--iid-noise", type=float, metavar="SIGMA",
+                    help="replace the nuisance model by i.i.d. complex measurement noise of rms SIGMA*|Z| per reading "
+                         "and breast (no placement / contact / asymmetry terms, no jitter); disables the sweeps")
     a = ap.parse_args()
     torch.set_num_threads(a.threads)
     cfg = yaml.safe_load(Path(a.config).read_text()) or {}
@@ -39,6 +43,12 @@ def main():
     data = Path(a.data or data)
     if not data.is_absolute():
         data = ROOT / data
+    if a.split:
+        cfg["split"] = a.split
+    if a.iid_noise is not None:
+        cfg["noise"] = dict(meas_sigma=a.iid_noise, placement_sigma=0.0, contact_sigma=0.0, anat_sigma=0.0,
+                            scale_jitter=[1.0, 1.0])
+        cfg.setdefault("eval", {}).update(noise_sweep=[1.0], anat_sweep=[])
     if a.quick:
         for k, v in QUICK.items():
             cfg.setdefault(k, {}).update(v)

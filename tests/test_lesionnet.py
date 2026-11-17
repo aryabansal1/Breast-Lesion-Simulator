@@ -9,7 +9,7 @@ from lesionnet.data import load_dataset, write_synthetic_dataset  # noqa: E402
 from lesionnet.model import PairDiffNet  # noqa: E402
 from lesionnet.noise import NoiseModel, anatomy_directions  # noqa: E402
 from lesionnet.pairs import inner_validation, make_pairs, make_splits, pair_features, sample_pair_features  # noqa: E402
-from lesionnet.train import load_ensemble, run  # noqa: E402
+from lesionnet.train import EnergyDetector, load_ensemble, run  # noqa: E402
 
 QUIET = dict(meas_sigma=0.0, placement_sigma=0.0, contact_sigma=0.0, anat_sigma=0.0)
 
@@ -139,6 +139,9 @@ def test_train_eval_end_to_end(tmp_path):
     assert {"train_loss", "train_loss_running", "val_loss", "val_auroc"} <= set(h.columns)
     assert h.groupby(["split", "member"]).train_loss.apply(lambda s: s.iloc[-1] < s.iloc[0]).mean() >= 0.75
     assert res["splits"] == [f"loco_{c}" for c in sorted(set(ds.composition))]
+    st = pd.read_csv(tmp_path / "strata.csv")
+    assert {"auroc_nn", "sensitivity_nn", "specificity_nn", "specificity_logreg", "n_neg"} <= set(st.columns)
+    assert st.specificity_nn.between(0, 1).all()
     assert res["summary"]["nn"]["auroc_mean"] > 0.75
     pred = pd.read_csv(tmp_path / "test_predictions.csv")
     assert set(pred.label) == {0, 1} and pred.score_nn.between(0, 1).all()
@@ -147,3 +150,12 @@ def test_train_eval_end_to_end(tmp_path):
     p = ens.predict_proba(x)
     assert p.shape == (5,) and ((p > 0) & (p < 1)).all()
     assert ck["measurement_id"] == list(ds.measurement_id)
+
+
+def test_energy_detector_handles_noise_free_negatives():
+    rng = np.random.default_rng(0)
+    neg = np.zeros((20, 2, 7, 7), np.float32)
+    pos = rng.normal(0, 1e-3, (20, 2, 7, 7)).astype(np.float32)
+    e = EnergyDetector().fit(neg)
+    s0, s1 = e.score(neg), e.score(pos)
+    assert np.isfinite(s1).all() and s0.max() < s1.min()

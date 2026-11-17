@@ -217,7 +217,7 @@ therefore by group (Roberts 2017):
 `BreastDataset.subset` refuses subsets in which a lesion record's baseline is missing, and
 `test_splits_never_share_geometry` checks disjointness.
 
-After CV, `run(final=True)` retrains on all data and saves `final_model.pt` (load with `train.load_ensemble`);
+After CV, `run(final=True)` retrains on all data and saves `model.pt` (load with `train.load_ensemble`);
 the reported performance is always the CV estimate, not the final model.
 
 ### 7.2 Metrics (`metrics.binary_metrics`)
@@ -230,7 +230,7 @@ outer split (`metrics_by_split.csv`) and as mean ± std (`metrics_summary.csv`);
 * `energy`: Ledoit–Wolf (2004) covariance of lesion-free pair features → whitened squared norm (a GLRT for an
   unknown signal in Gaussian nuisance).
 * `logreg`: logistic regression on squared whitened features (learns which readings matter).
-Both trained on the same nuisance-augmented training pairs.
+Both trained on the same nuisance-augmented training pairs and see exactly the network's input.
 
 ### 7.4 Robustness and strata
 * `noise_sweep.csv`: AUROC of all methods when *all* test-time sigmas are multiplied by 0.25–4, and when only
@@ -240,7 +240,7 @@ Both trained on the same nuisance-augmented training pairs.
 These answer "how big must a lesion effect be relative to the nuisance to be flagged", which is the transferable
 result.
 
-### 7.5 Pilot results (6 dense geometries — illustrative only)
+### 7.5 Pilot results (6 dense geometries — illustrative only; superseded by §7.6)
 `scripts/generate_dataset.py configs/dataset_v1.yaml --only dense --limit 6` (30 records), one composition so
 geometry 5-fold CV, default nuisance:
 
@@ -255,6 +255,202 @@ Noise sweep (NN AUROC): 0.97 / 0.95 / 0.90 / 0.83 / 0.74 at ×0.25 / 0.5 / 1 / 2
 0 / 0.1 / 0.3 / 1 / 3 % → 0.95 / 0.95 / 0.91 / 0.76 / 0.63. With n = 6 geometries the confidence intervals are
 wide; rerun on the full dataset before drawing conclusions.
 
+### 7.6 Full-dataset results (`bioimpedance_v1`: 245 geometries, 1,225 records)
+
+Dataset: `data/datasets/bioimpedance_v1/` (61 dense, 62 fatty, 60 hetero, 62 scattered geometries; 11 rejected at
+generation; 4 shapes × 8 clock positions × 2 depths × 4 materials). Config `configs/nn_v1.yaml` unchanged (5-member
+ensemble, ≤ 200 epochs, patience 40), `--no-final`, seed 0. Each test pair set has 4 nuisance draws per pair, so a
+held-out composition has ≈ 1,000 lesion pairs + ≈ 250 lesion-free pairs; "n lesion pairs" below counts draws.
+Specificity per shape uses the lesion-free pairs of geometries with that shape. `logreg` = logistic regression on the
+*same* input as the network (the whitened left/right log-ratio, squared because the lesion side is random so a linear
+model on signed features has no signal); `energy` = whitened energy detector (no threshold, so no sens/spec).
+Per-split CSVs, strata, sweeps and loss curves are in `docs/nn_results_v1/<run>/`.
+
+**Headline.** With the configured nuisance (§4) the ensemble reaches AUROC 0.983 ± 0.022 on unseen compositions
+(LOCO) and 0.992 ± 0.006 on unseen geometries, vs 0.895 / 0.890 for logistic regression and 0.914 / 0.899 for the
+energy detector. Dense is the hardest held-out breast (AUROC 0.951, sensitivity 0.70 at p = 0.5); fatty and
+scattered are near-perfect, matching their larger lesion effects (`detectability_summary.csv`). The 4 mm sphere is
+the hardest shape everywhere. Detectability is governed by clean effect / nuisance: sensitivity (LOCO, NN) is 0.28
+for effects of 0.03–0.1 % rms, 0.67 for 0.1–0.3 %, 0.90 for 0.3–1 % and 1.00 above 1 %.
+
+#### Configured nuisance model — leave-one-composition-out (primary)
+
+| held-out | method | AUROC | AUPRC | sens@95%spec | sens (p≥0.5) | spec (p≥0.5) |
+|---|---|---|---|---|---|---|
+| loco_dense | nn | 0.951 | 0.959 | 0.784 | 0.704 | 0.980 |
+| loco_dense | energy | 0.820 | 0.825 | 0.388 | — | — |
+| loco_dense | logreg | 0.785 | 0.811 | 0.395 | 0.321 | 0.970 |
+| loco_fatty | nn | 0.999 | 0.999 | 0.993 | 0.995 | 0.934 |
+| loco_fatty | energy | 0.990 | 0.991 | 0.949 | — | — |
+| loco_fatty | logreg | 0.994 | 0.996 | 0.984 | 0.977 | 0.965 |
+| loco_hetero | nn | 0.983 | 0.987 | 0.938 | 0.917 | 0.965 |
+| loco_hetero | energy | 0.886 | 0.901 | 0.615 | — | — |
+| loco_hetero | logreg | 0.890 | 0.905 | 0.599 | 0.595 | 0.956 |
+| loco_scattered | nn | 0.997 | 0.998 | 0.983 | 0.980 | 0.967 |
+| loco_scattered | energy | 0.961 | 0.963 | 0.794 | — | — |
+| loco_scattered | logreg | 0.912 | 0.919 | 0.635 | 0.694 | 0.932 |
+| **mean ± sd** | energy | 0.914 ± 0.077 | | 0.686 | — | — |
+| **mean ± sd** | logreg | 0.895 ± 0.086 | | 0.653 | 0.646 | 0.956 |
+| **mean ± sd** | nn | 0.983 ± 0.022 | | 0.924 | 0.899 | 0.961 |
+
+| shape | n lesion pairs | NN AUROC | NN sens | NN spec | LR AUROC | LR sens | LR spec |
+|---|---|---|---|---|---|---|---|
+| ellipsoid_9x5x5 | 1008 | 0.994 | 0.940 | 0.965 | 0.943 | 0.758 | 0.960 |
+| sphere_r4 | 1024 | 0.956 | 0.800 | 0.954 | 0.785 | 0.370 | 0.946 |
+| sphere_r7 | 1024 | 0.998 | 0.966 | 0.957 | 0.976 | 0.910 | 0.958 |
+| victre_spiculated_14 | 864 | 0.983 | 0.891 | 0.970 | 0.874 | 0.530 | 0.961 |
+
+![LOCO loss curves](nn_results_v1/loco/loss_curves.png)
+
+Loss curves: solid = training BCE, dashed = validation BCE on the member's held-out composition. Training loss
+falls from ≈ 0.3 to 0.04–0.12 in every split. Validation loss depends mostly on *which* composition is held out:
+members validating on dense stay highest (0.16–0.55; in `loco_hetero` the two dense-validated members barely improve
+and stop at epochs 41/108), members validating on fatty or scattered reach 0.04–0.15. Members that hit 200 epochs
+were still improving slowly; no member shows a clear sustained validation-loss rise, so early stopping mostly
+guards against noise rather than gross overfitting.
+
+#### Configured nuisance model — geometry-grouped 5-fold (all compositions in training)
+
+| held-out | method | AUROC | AUPRC | sens@95%spec | sens (p≥0.5) | spec (p≥0.5) |
+|---|---|---|---|---|---|---|
+| geom_fold0 | nn | 0.995 | 0.996 | 0.978 | 0.952 | 0.983 |
+| geom_fold0 | energy | 0.900 | 0.911 | 0.634 | — | — |
+| geom_fold0 | logreg | 0.880 | 0.907 | 0.619 | 0.596 | 0.955 |
+| geom_fold1 | nn | 0.999 | 0.999 | 0.997 | 0.994 | 0.987 |
+| geom_fold1 | energy | 0.933 | 0.933 | 0.691 | — | — |
+| geom_fold1 | logreg | 0.934 | 0.943 | 0.730 | 0.688 | 0.958 |
+| geom_fold2 | nn | 0.991 | 0.992 | 0.962 | 0.916 | 0.987 |
+| geom_fold2 | energy | 0.886 | 0.907 | 0.652 | — | — |
+| geom_fold2 | logreg | 0.884 | 0.912 | 0.639 | 0.626 | 0.958 |
+| geom_fold3 | nn | 0.994 | 0.996 | 0.980 | 0.971 | 0.985 |
+| geom_fold3 | energy | 0.897 | 0.913 | 0.673 | — | — |
+| geom_fold3 | logreg | 0.896 | 0.920 | 0.682 | 0.663 | 0.957 |
+| geom_fold4 | nn | 0.982 | 0.987 | 0.939 | 0.923 | 0.985 |
+| geom_fold4 | energy | 0.878 | 0.890 | 0.559 | — | — |
+| geom_fold4 | logreg | 0.858 | 0.881 | 0.531 | 0.551 | 0.946 |
+| **mean ± sd** | energy | 0.899 ± 0.021 | | 0.642 | — | — |
+| **mean ± sd** | logreg | 0.890 ± 0.028 | | 0.640 | 0.625 | 0.955 |
+| **mean ± sd** | nn | 0.992 ± 0.006 | | 0.971 | 0.951 | 0.985 |
+
+| shape | n lesion pairs | NN AUROC | NN sens | NN spec | LR AUROC | LR sens | LR spec |
+|---|---|---|---|---|---|---|---|
+| ellipsoid_9x5x5 | 1008 | 0.999 | 0.991 | 0.982 | 0.953 | 0.783 | 0.944 |
+| sphere_r4 | 1024 | 0.977 | 0.857 | 0.989 | 0.762 | 0.285 | 0.951 |
+| sphere_r7 | 1024 | 1.000 | 0.997 | 0.984 | 0.977 | 0.916 | 0.963 |
+| victre_spiculated_14 | 864 | 0.991 | 0.954 | 0.985 | 0.851 | 0.485 | 0.961 |
+
+![geometry-fold loss curves](nn_results_v1/gkf/loss_curves.png)
+
+Geometry folds score higher than LOCO because every test composition is also represented in training; the LOCO
+numbers are the honest estimate for a new anatomy.
+
+#### Simple i.i.d. noise levels (LOCO)
+
+`--iid-noise σ` replaces the whole nuisance model by independent complex Gaussian noise with rms σ·|Z| on every
+reading of each breast (no placement, contact or asymmetry terms, no magnitude jitter); training and test use the
+same σ.
+
+**σ = 0** (noise-free; a sanity check — any nonzero left/right difference is a lesion):
+
+| held-out | method | AUROC | AUPRC | sens@95%spec | sens (p≥0.5) | spec (p≥0.5) |
+|---|---|---|---|---|---|---|
+| loco_dense | nn | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| loco_dense | energy | 1.000 | 1.000 | 1.000 | — | — |
+| loco_dense | logreg | 1.000 | 1.000 | 1.000 | 0.914 | 1.000 |
+| loco_fatty | nn | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| loco_fatty | energy | 1.000 | 1.000 | 1.000 | — | — |
+| loco_fatty | logreg | 1.000 | 1.000 | 1.000 | 0.968 | 1.000 |
+| loco_hetero | nn | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| loco_hetero | energy | 1.000 | 1.000 | 1.000 | — | — |
+| loco_hetero | logreg | 0.983 | 0.992 | 0.983 | 0.879 | 1.000 |
+| loco_scattered | nn | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| loco_scattered | energy | 1.000 | 1.000 | 1.000 | — | — |
+| loco_scattered | logreg | 1.000 | 1.000 | 1.000 | 0.972 | 1.000 |
+| **mean ± sd** | energy | 1.000 ± 0.000 | | 1.000 | — | — |
+| **mean ± sd** | logreg | 0.996 ± 0.008 | | 0.996 | 0.933 | 1.000 |
+| **mean ± sd** | nn | 1.000 ± 0.000 | | 1.000 | 1.000 | 1.000 |
+
+**σ = 0.1 % of |Z|:**
+
+| held-out | method | AUROC | AUPRC | sens@95%spec | sens (p≥0.5) | spec (p≥0.5) |
+|---|---|---|---|---|---|---|
+| loco_dense | nn | 0.996 | 0.997 | 0.990 | 0.963 | 1.000 |
+| loco_dense | energy | 0.993 | 0.995 | 0.976 | — | — |
+| loco_dense | logreg | 0.927 | 0.948 | 0.807 | 0.615 | 1.000 |
+| loco_fatty | nn | 1.000 | 1.000 | 1.000 | 1.000 | 0.999 |
+| loco_fatty | energy | 1.000 | 1.000 | 1.000 | — | — |
+| loco_fatty | logreg | 1.000 | 1.000 | 0.999 | 0.985 | 1.000 |
+| loco_hetero | nn | 0.996 | 0.997 | 0.992 | 0.984 | 1.000 |
+| loco_hetero | energy | 0.995 | 0.997 | 0.988 | — | — |
+| loco_hetero | logreg | 0.958 | 0.970 | 0.875 | 0.796 | 1.000 |
+| loco_scattered | nn | 1.000 | 1.000 | 1.000 | 1.000 | 0.999 |
+| loco_scattered | energy | 1.000 | 1.000 | 0.999 | — | — |
+| loco_scattered | logreg | 0.995 | 0.997 | 0.986 | 0.964 | 1.000 |
+| **mean ± sd** | energy | 0.997 ± 0.003 | | 0.991 | — | — |
+| **mean ± sd** | logreg | 0.970 ± 0.034 | | 0.917 | 0.840 | 1.000 |
+| **mean ± sd** | nn | 0.998 ± 0.002 | | 0.995 | 0.987 | 0.999 |
+
+| shape | n lesion pairs | NN AUROC | NN sens | NN spec | LR AUROC | LR sens | LR spec |
+|---|---|---|---|---|---|---|---|
+| ellipsoid_9x5x5 | 1008 | 1.000 | 1.000 | 1.000 | 0.999 | 0.961 | 1.000 |
+| sphere_r4 | 1024 | 0.994 | 0.963 | 1.000 | 0.929 | 0.658 | 1.000 |
+| sphere_r7 | 1024 | 1.000 | 1.000 | 0.998 | 0.998 | 0.978 | 1.000 |
+| victre_spiculated_14 | 864 | 0.998 | 0.985 | 1.000 | 0.956 | 0.753 | 1.000 |
+
+**σ = 0.5 % of |Z|:**
+
+| held-out | method | AUROC | AUPRC | sens@95%spec | sens (p≥0.5) | spec (p≥0.5) |
+|---|---|---|---|---|---|---|
+| loco_dense | nn | 0.925 | 0.946 | 0.792 | 0.699 | 0.995 |
+| loco_dense | energy | 0.859 | 0.896 | 0.655 | — | — |
+| loco_dense | logreg | 0.751 | 0.805 | 0.444 | 0.461 | 0.941 |
+| loco_fatty | nn | 1.000 | 1.000 | 1.000 | 1.000 | 0.979 |
+| loco_fatty | energy | 1.000 | 1.000 | 0.999 | — | — |
+| loco_fatty | logreg | 0.999 | 0.999 | 0.995 | 0.992 | 0.990 |
+| loco_hetero | nn | 0.964 | 0.976 | 0.911 | 0.870 | 0.994 |
+| loco_hetero | energy | 0.935 | 0.954 | 0.833 | — | — |
+| loco_hetero | logreg | 0.823 | 0.866 | 0.556 | 0.615 | 0.910 |
+| loco_scattered | nn | 0.995 | 0.997 | 0.988 | 0.986 | 0.985 |
+| loco_scattered | energy | 0.990 | 0.993 | 0.973 | — | — |
+| loco_scattered | logreg | 0.929 | 0.948 | 0.798 | 0.833 | 0.903 |
+| **mean ± sd** | energy | 0.946 ± 0.065 | | 0.865 | — | — |
+| **mean ± sd** | logreg | 0.876 ± 0.110 | | 0.698 | 0.725 | 0.936 |
+| **mean ± sd** | nn | 0.971 ± 0.035 | | 0.923 | 0.889 | 0.988 |
+
+| shape | n lesion pairs | NN AUROC | NN sens | NN spec | LR AUROC | LR sens | LR spec |
+|---|---|---|---|---|---|---|---|
+| ellipsoid_9x5x5 | 1008 | 0.995 | 0.957 | 0.986 | 0.939 | 0.851 | 0.938 |
+| sphere_r4 | 1024 | 0.937 | 0.779 | 0.993 | 0.785 | 0.513 | 0.946 |
+| sphere_r7 | 1024 | 0.995 | 0.966 | 0.989 | 0.962 | 0.913 | 0.926 |
+| victre_spiculated_14 | 864 | 0.957 | 0.850 | 0.983 | 0.817 | 0.608 | 0.935 |
+
+With purely white noise the matched energy detector is close to optimal and the network only matches or slightly
+beats it (0.998 vs 0.997 at 0.1 %, 0.971 vs 0.946 at 0.5 %). The network's margin over both baselines is largest
+under the structured nuisance model (placement gains shared across readings, contact drift on bipolar readings,
+smooth asymmetry), where it learns which spectral/measurement patterns are nuisance.
+
+#### Robustness sweeps (configured-nuisance models, mean AUROC over LOCO splits)
+
+| test-time nuisance | ×0.25 | ×0.5 | ×1 | ×2 | ×4 |
+|---|---|---|---|---|---|
+| NN | 0.998 | 0.993 | 0.980 | 0.953 | 0.899 |
+| logreg | 0.980 | 0.950 | 0.890 | 0.804 | 0.705 |
+| energy | 0.986 | 0.959 | 0.909 | 0.820 | 0.694 |
+
+| anatomical asymmetry σ | 0 | 0.1 % | 0.3 % (default) | 1 % | 3 % |
+|---|---|---|---|---|---|
+| NN | 0.995 | 0.993 | 0.980 | 0.932 | 0.838 |
+| logreg | 0.928 | 0.921 | 0.885 | 0.770 | 0.643 |
+| energy | 0.954 | 0.948 | 0.909 | 0.783 | 0.638 |
+
+(The ×1 / 0.3 % columns use a fresh draw, so they differ slightly from the main table.) Material and depth barely
+matter (NN AUROC 0.981–0.984 for all four materials, 0.983 at both 10 and 18 mm); lesion size and position relative
+to the current paths drive the effect size much more than material.
+
+**Caveats.** Four anatomies only, so LOCO has 4 test folds and composition is confounded with phantom; all
+nuisance magnitudes are assumptions (§8); the network was not tuned on these results (config unchanged from the
+pilot).
+
 ---
 
 ## 8. Limitations and what to change with real data
@@ -264,8 +460,9 @@ wide; rerun on the full dataset before drawing conclusions.
   differences in healthy volunteers. Replace `NoiseModel` sigmas (or fit them) and rerun the sweeps.
 * **Perfect bilateral symmetry in the simulator** — mitigated only by the parametric asymmetry model; a richer
   option is to simulate separate left/right phantoms of the same woman if such pairs become available.
-* **Few anatomies** (4 compositions, all VICTRE): LOCO with 4 folds has high variance; expect a drop on real
-  anatomy.
+* **Few anatomies** (4 compositions, one VICTRE phantom each): LOCO with 4 folds has high variance (§7.6: dense
+  0.95 vs fatty 0.999) and composition is confounded with phantom; more phantom seeds per density would help most.
+  Expect a drop on real anatomy.
 * **Lesion-present-in-one-breast only**; bilateral lesions would cancel partially in the ratio (rare clinically,
   but the model is not designed for it).
 * **Not a diagnostic.** No thresholds are recommended; prevalence-dependent operating points must be chosen on
@@ -281,11 +478,13 @@ wide; rerun on the full dataset before drawing conclusions.
 pip install -e ".[dev,nn]"
 python scripts/train_lesion_net.py configs/nn_v1.yaml                         # full dataset
 python scripts/train_lesion_net.py configs/nn_v1.yaml --data outputs/pilot -o outputs/nn_pilot --no-final
+python scripts/train_lesion_net.py configs/nn_v1.yaml --split group_kfold --no-final -o outputs/full_gkf
+python scripts/train_lesion_net.py configs/nn_v1.yaml --iid-noise 0.001 --no-final -o outputs/full_iid1e-3
 python scripts/train_lesion_net.py configs/nn_v1.yaml --synthetic --quick -o outputs/nn_synth
 pytest -q tests/test_lesionnet.py
 ```
 Outputs: `metrics_by_split.csv`, `metrics_summary.csv`, `test_predictions.csv`, `training_history.csv`,
-`loss_curves.png`, `noise_sweep.csv`, `strata.csv`, `results.json`, `final_model.pt` (+ final-model history).
+`loss_curves.png`, `noise_sweep.csv`, `strata.csv`, `results.json`, `model.pt` (+ final-model history).
 
 ---
 
