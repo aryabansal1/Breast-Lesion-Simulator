@@ -1,0 +1,8 @@
+measurement_id,measurement_type,inject_pos,inject_neg,sense_pos,sense_neg
+across_vertical,tetrapolar,E1,E3,E2,E4
+bipolar_E1E3,bipolar,E1,E3,E1,E3
+bipolar_E2E4,bipolar,E2,E4,E2,E4
+adj_E1E2_E3E4,tetrapolar,E1,E2,E3,E4
+adj_E2E3_E4E1,tetrapolar,E2,E3,E4,E1
+adj_E3E4_E1E2,tetrapolar,E3,E4,E1,E2
+adj_E4E1_E2E3,tetrapolar,E4,E1,E2,E3

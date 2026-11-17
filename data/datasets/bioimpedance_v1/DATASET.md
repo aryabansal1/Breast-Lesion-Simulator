@@ -4,7 +4,9 @@ Intended use: training/evaluating a model that **flags whether a lesion is prese
 differences (lesion breast vs. lesion-free breast). Malignant/benign labels are included only as descriptive
 metadata (`lesion_class`) and are not the intended target.
 
-Regenerate: `python scripts/generate_dataset.py configs/dataset_v1.yaml --workers 5`
+Regenerate: `python scripts/generate_dataset.py configs/dataset_v1.yaml --workers 7` (each geometry runs in its own
+process and is cached under `jobs/`, so an interrupted sweep resumes; the full sweep is ~33 CPU-hours, about 3 h of
+wall time with 7 workers on an 8-core / 32 GB Linux VM, with up to ~3.6 GB per worker for fatty-breast meshes)
 (the sweep definition is copied to `sweep_config.yaml`; versions/commit in `provenance.json`).
 
 ## What was simulated
@@ -29,6 +31,33 @@ the lesion). On that mesh, the lesion region is solved with its host tissue (the
 on an identical mesh (`baseline_record_id`), so differences contain no meshing noise. Geometries the simulator
 rejects (lesion touching skin/air/chest wall, or within 1 mm of an electrode) are listed in
 `rejected_geometries.csv` and have no records.
+
+## Contents
+
+256 geometries (4 compositions × 4 lesion shapes × 8 clock positions × 2 depths). 245 were simulated and 11 rejected
+(10 of them the 14 mm spiculated mass at 10 mm depth, which reaches the skin or comes within 1 mm of an electrode).
+That gives **1225 records: 245 lesion-free baselines + 980 lesion-present records** (4 materials per geometry), each
+with 7 frequencies × 7 measurements. Every solve has relative residual ≤ 8e-12.
+
+## Lesion vs. baseline effect size (noise-free)
+
+Largest relative change in |Z| over the 4 adjacent tetrapolar measurements and all frequencies, per lesion record
+(`across_vertical` and bipolar excluded). Full breakdown by composition × shape × depth: `detectability_summary.csv`.
+
+| group | n | median | > 0.1 % | > 0.5 % | > 1 % | median Δ\|Z\| |
+|---|---|---|---|---|---|---|
+| all lesions | 980 | 0.62 % | 94 % | 59 % | 31 % | 0.10 Ω |
+| `sphere_r4` (8 mm) | 256 | 0.32 % | 84 % | 20 % | 3 % | 0.05 Ω |
+| `victre_spiculated_14` | 216 | 0.45 % | 92 % | 44 % | 9 % | 0.07 Ω |
+| `ellipsoid_9x5x5` | 252 | 0.93 % | 100 % | 81 % | 44 % | 0.16 Ω |
+| `sphere_r7` (14 mm) | 256 | 1.32 % | 100 % | 90 % | 65 % | 0.20 Ω |
+| `fatty` | 248 | 0.78 % | 98 % | 73 % | 40 % | 0.20 Ω |
+| `scattered` | 248 | 0.89 % | 99 % | 69 % | 43 % | 0.17 Ω |
+| `hetero` | 240 | 0.56 % | 91 % | 55 % | 26 % | 0.07 Ω |
+| `dense` | 244 | 0.37 % | 87 % | 39 % | 15 % | 0.04 Ω |
+
+These are deterministic differences with no noise or anatomical asymmetry; they show the size of the signal,
+not whether it is statistically detectable on a real device.
 
 ## Files
 

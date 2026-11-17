@@ -1,0 +1,113 @@
+name: bioimpedance_v1
+out_dir: data/datasets/bioimpedance_v1
+base:
+  mesh:
+    h_mm: 2.5
+    tumour_h_mm: 1.25
+    chest_wall_mm: 20.0
+  materials:
+    library: data/materials/library.yaml
+    assignment: uci_breast
+    extrapolation: warn
+  electrodes:
+    mirror_clock_for_right: true
+    contact:
+      model: constant
+      z_ohm_m2: 0.005
+    items:
+    - id: E1
+      clock_hour: 12
+      s: 0.55
+      radius_mm: 5
+    - id: E2
+      clock_hour: 3
+      s: 0.55
+      radius_mm: 5
+    - id: E3
+      clock_hour: 6
+      s: 0.55
+      radius_mm: 5
+    - id: E4
+      clock_hour: 9
+      s: 0.55
+      radius_mm: 5
+  measurements:
+    current_a: 0.0001
+    pairs:
+    - id: across_vertical
+      inject:
+      - E1
+      - E3
+      sense:
+      - E2
+      - E4
+    - id: bipolar_E1E3
+      inject:
+      - E1
+      - E3
+      sense:
+      - E1
+      - E3
+    - id: bipolar_E2E4
+      inject:
+      - E2
+      - E4
+      sense:
+      - E2
+      - E4
+    pattern: adjacent
+  frequencies_hz:
+  - 15625
+  - 31250
+  - 62500
+  - 125000
+  - 250000
+  - 500000
+  - 1000000
+compositions:
+  fatty: data/anatomy/victre_fatty_p_0p5mm.npz
+  scattered: data/anatomy/victre_scattered_p_0p5mm.npz
+  hetero: data/anatomy/victre_hetero_p_0p5mm.npz
+  dense: data/anatomy/victre_dense_p_0p5mm.npz
+lesion_materials:
+  carcinoma_uci: malignant
+  carcinoma_surowiec: malignant
+  fibroadenoma_uci: benign
+  mastopathy_uci: benign
+lesion_shapes:
+  sphere_r4:
+    shape: sphere
+    radius_mm: 4.0
+  sphere_r7:
+    shape: sphere
+    radius_mm: 7.0
+  ellipsoid_9x5x5:
+    shape: ellipsoid
+    semi_axes_mm:
+    - 9.0
+    - 5.0
+    - 5.0
+  victre_spiculated_14:
+    shape: voxel
+    path: data/lesions/mass_-308854003_cropped_166.raw.gz
+    dims:
+    - 166
+    - 166
+    - 166
+    size_mm: 14.0
+locations:
+  clock_hour:
+  - 12
+  - 1.5
+  - 3
+  - 4.5
+  - 6
+  - 7.5
+  - 9
+  - 10.5
+  s:
+  - 0.55
+  depth_mm:
+  - 10.0
+  - 18.0
+electrode_margin_mm: 1.0
