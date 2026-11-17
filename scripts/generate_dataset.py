@@ -258,6 +258,7 @@ def main():
     ap.add_argument("-o", "--out", help="override out_dir")
     ap.add_argument("--assemble-only", action="store_true")
     ap.add_argument("--retries", type=int, default=3)
+    ap.add_argument("--job-timeout", type=float, default=5400, help="seconds before a stalled job is killed")
     ap.add_argument("--run-one", help=argparse.SUPPRESS)
     a = ap.parse_args()
     spec = yaml.safe_load(Path(a.spec).read_text())
@@ -281,8 +282,13 @@ def main():
         def launch(j):
             # one process per job: a native crash (seen intermittently inside METIS) only loses that job
             for attempt in range(1, a.retries + 1):
-                p = subprocess.run([sys.executable, __file__, a.spec, "--run-one", j["geometry_id"],
-                                    *(["-o", a.out] if a.out else [])], capture_output=True, text=True)
+                try:
+                    p = subprocess.run([sys.executable, __file__, a.spec, "--run-one", j["geometry_id"],
+                                        *(["-o", a.out] if a.out else [])], capture_output=True, text=True,
+                                       timeout=a.job_timeout)
+                except subprocess.TimeoutExpired:
+                    print(f"{j['geometry_id']}: attempt {attempt} timed out after {a.job_timeout:.0f}s", flush=True)
+                    continue
                 f = cache / f"{j['geometry_id']}.json"
                 if f.exists():
                     r = json.loads(f.read_text())
@@ -292,7 +298,7 @@ def main():
                           f"{r.get('time_s', 0):.0f}s", flush=True)
                     return
                 print(f"{j['geometry_id']}: attempt {attempt} failed (exit {p.returncode}): "
-                      f"{p.stderr.strip().splitlines()[-1:] or ''}", flush=True)
+                      f"{next((ln for ln in p.stderr.splitlines() if 'Error' in ln), '')}", flush=True)
 
         with ThreadPoolExecutor(a.workers) as ex:
             list(ex.map(launch, todo))
