@@ -72,10 +72,24 @@ def record_id(gid, material):
     return f"{gid}__{material or 'none'}"
 
 
+def write_cache(path, out):
+    tmp = path.with_name(path.name + ".tmp")  # write-then-rename: an interrupted write never leaves a partial cache
+    tmp.write_text(json.dumps(out, default=lambda o: o.item() if isinstance(o, np.generic) else str(o)))
+    os.replace(tmp, path)
+
+
+def read_cache(path):
+    try:
+        return json.loads(Path(path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return None
+
+
 def run_job(spec, job, cache_dir):
     path = Path(cache_dir) / f"{job['geometry_id']}.json"
-    if path.exists():
-        return json.loads(path.read_text())
+    cached = read_cache(path)
+    if cached is not None:
+        return cached
     t0 = time.perf_counter()
     cfg = job_config(spec, job)
     lib = MaterialLibrary.load(cfg["materials"]["library"])
@@ -85,7 +99,7 @@ def run_job(spec, job, cache_dir):
         am, els, cases, trep, mesh_time, _ = prepare_side(cfg, anat, lib, lambda *a: None)
     except ValueError as e:  # lesion rejected (touches skin/air/boundary or too close to an electrode)
         out.update(status="rejected", reason=str(e), time_s=time.perf_counter() - t0)
-        path.write_text(json.dumps(out))
+        write_cache(path, out)
         return out
     ids = [e.id for e in els]
     meas = measurement_list(cfg, ids)
@@ -126,7 +140,7 @@ def run_job(spec, job, cache_dir):
                          projected_area_mm2=e.projected_area_m2 * 1e6, meshed_area_mm2=e.area_m2 * 1e6)
                     for e in els],
         max_relative_residual=max_res, extrapolated_materials=sorted(extrap_all), time_s=time.perf_counter() - t0)
-    path.write_text(json.dumps(out, default=lambda o: o.item() if isinstance(o, np.generic) else str(o)))
+    write_cache(path, out)
     return out
 
 
@@ -268,7 +282,7 @@ def main():
     jobs = make_jobs(spec)
     if a.only:
         jobs = [j for j in jobs if j["composition"] in a.only]
-    todo = [j for j in jobs if not (cache / f"{j['geometry_id']}.json").exists()]
+    todo = [j for j in jobs if read_cache(cache / f"{j['geometry_id']}.json") is None]
     todo.sort(key=lambda j: -COST.get(j["composition"], 0))
     if a.limit is not None:
         todo = todo[:a.limit]
@@ -289,9 +303,8 @@ def main():
                 except subprocess.TimeoutExpired:
                     print(f"{j['geometry_id']}: attempt {attempt} timed out after {a.job_timeout:.0f}s", flush=True)
                     continue
-                f = cache / f"{j['geometry_id']}.json"
-                if f.exists():
-                    r = json.loads(f.read_text())
+                r = read_cache(cache / f"{j['geometry_id']}.json")
+                if r is not None:
                     done_n[0] += 1
                     msg = r["status"] + ("" if r["status"] == "ok" else f" ({r['reason']})")
                     print(f"[{done_n[0]}/{len(todo)} {time.perf_counter() - t0:7.0f}s] {j['geometry_id']}: {msg} "
@@ -302,7 +315,7 @@ def main():
 
         with ThreadPoolExecutor(a.workers) as ex:
             list(ex.map(launch, todo))
-    done = [json.loads(p.read_text()) for p in sorted(cache.glob("*.json"))]
+    done = [r for p in sorted(cache.glob("*.json")) if (r := read_cache(p)) is not None]
     keep = {j["geometry_id"] for j in make_jobs(spec)}
     rec, failures = assemble(spec, out_dir, [r for r in done if r["job"]["geometry_id"] in keep])
     print(f"wrote {out_dir}: {len(rec)} records ({int(rec.lesion_present.sum()) if len(rec) else 0} with lesion), "
