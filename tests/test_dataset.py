@@ -50,6 +50,14 @@ def test_tiny_sweep_records_baseline_and_lesions(tmp_path):
     cache.mkdir()
     r = gd.run_job(spec, job, cache)
     assert r["status"] == "ok" and r["max_relative_residual"] < 1e-8
+    f = cache / f"{job['geometry_id']}.json"
+    assert gd.read_cache(f, gd.job_fingerprint(spec, job)) is not None
+    changed = copy.deepcopy(spec)
+    changed["base"]["frequencies_hz"] = [125000]
+    assert gd.read_cache(f, gd.job_fingerprint(changed, job)) is None
+    bad = cache / "partial.json"
+    bad.write_text("{")
+    assert gd.read_cache(bad, gd.job_fingerprint(spec, job)) is None
     rec, failures = gd.assemble(spec, tmp_path, [r])
     assert not failures
     assert list(rec.lesion_present) == [False, True, True]
