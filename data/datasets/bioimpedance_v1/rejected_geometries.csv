@@ -1,0 +1,12 @@
+geometry_id,composition,lesion_shape_id,lesion_shape_type,lesion_clock_hour,lesion_s,lesion_depth_mm,reason
+dense__ellipsoid_9x5x5__c9_s0p55_d10,dense,ellipsoid_9x5x5,ellipsoid,9.0,0.55,10.0,tumour touches the external boundary of the domain
+dense__victre_spiculated_14__c12_s0p55_d10,dense,victre_spiculated_14,voxel,12.0,0.55,10.0,tumour is 0.01 mm from an electrode (< margin 1.0 mm)
+dense__victre_spiculated_14__c9_s0p55_d10,dense,victre_spiculated_14,voxel,9.0,0.55,10.0,tumour is 0.49 mm from an electrode (< margin 1.0 mm)
+fatty__victre_spiculated_14__c12_s0p55_d10,fatty,victre_spiculated_14,voxel,12.0,0.55,10.0,tumour is 0.39 mm from an electrode (< margin 1.0 mm)
+fatty__victre_spiculated_14__c9_s0p55_d10,fatty,victre_spiculated_14,voxel,9.0,0.55,10.0,tumour is 0.39 mm from an electrode (< margin 1.0 mm)
+hetero__victre_spiculated_14__c12_s0p55_d10,hetero,victre_spiculated_14,voxel,12.0,0.55,10.0,tumour is 0.57 mm from an electrode (< margin 1.0 mm)
+hetero__victre_spiculated_14__c3_s0p55_d10,hetero,victre_spiculated_14,voxel,3.0,0.55,10.0,tumour is 0.70 mm from an electrode (< margin 1.0 mm)
+hetero__victre_spiculated_14__c6_s0p55_d10,hetero,victre_spiculated_14,voxel,6.0,0.55,10.0,tumour touches the external boundary of the domain
+hetero__victre_spiculated_14__c7p5_s0p55_d10,hetero,victre_spiculated_14,voxel,7.5,0.55,10.0,tumour touches the external boundary of the domain
+scattered__victre_spiculated_14__c12_s0p55_d10,scattered,victre_spiculated_14,voxel,12.0,0.55,10.0,tumour is 0.13 mm from an electrode (< margin 1.0 mm)
+scattered__victre_spiculated_14__c7p5_s0p55_d10,scattered,victre_spiculated_14,voxel,7.5,0.55,10.0,tumour touches the external boundary of the domain

@@ -1,10 +1,10 @@
 {
  "breastsim_version": "0.1.0",
- "git_commit": null,
- "timestamp": "2026-10-31T00:00:24.480844+00:00",
- "platform": "Linux-6.8.0-1061-aws-x86_64-with-glibc2.35",
+ "git_commit": "9bf284a4ae0c7df576e24cc3612ff3b8d41bd00c",
+ "timestamp": "2026-11-16T21:05:48.776165+00:00",
+ "platform": "Linux-6.8.0-1060-aws-x86_64-with-glibc2.35",
  "machine": "x86_64",
- "python": "3.10.12",
+ "python": "3.12.16",
  "config": {
   "name": "victre_dense_paired",
   "anatomy": {
@@ -41,43 +41,19 @@
     },
     {
      "id": "E2",
-     "clock_hour": 1.5,
-     "s": 0.55,
-     "radius_mm": 5
-    },
-    {
-     "id": "E3",
      "clock_hour": 3,
      "s": 0.55,
      "radius_mm": 5
     },
     {
-     "id": "E4",
-     "clock_hour": 4.5,
-     "s": 0.55,
-     "radius_mm": 5
-    },
-    {
-     "id": "E5",
+     "id": "E3",
      "clock_hour": 6,
      "s": 0.55,
      "radius_mm": 5
     },
     {
-     "id": "E6",
-     "clock_hour": 7.5,
-     "s": 0.55,
-     "radius_mm": 5
-    },
-    {
-     "id": "E7",
+     "id": "E4",
      "clock_hour": 9,
-     "s": 0.55,
-     "radius_mm": 5
-    },
-    {
-     "id": "E8",
-     "clock_hour": 10.5,
      "s": 0.55,
      "radius_mm": 5
     }
@@ -90,7 +66,7 @@
      "id": "across_vertical",
      "inject": [
       "E1",
-      "E5"
+      "E3"
      ],
      "sense": [
       "E2",
@@ -98,36 +74,14 @@
      ]
     },
     {
-     "id": "across_horizontal",
-     "inject": [
-      "E3",
-      "E7"
-     ],
-     "sense": [
-      "E4",
-      "E6"
-     ]
-    },
-    {
-     "id": "upper_outer",
+     "id": "bipolar_E1E3",
      "inject": [
       "E1",
       "E3"
      ],
      "sense": [
-      "E2",
-      "E8"
-     ]
-    },
-    {
-     "id": "bipolar_E1E5",
-     "inject": [
       "E1",
-      "E5"
-     ],
-     "sense": [
-      "E1",
-      "E5"
+      "E3"
      ]
     }
    ],
@@ -200,19 +154,19 @@
     "dropped_island_cells": 0,
     "skin_coverage_of_breast_surface": 0.9782979383041389,
     "volume_ml_by_label": {
-     "1": 38.17855724206053,
+     "1": 38.17855724206052,
      "2": 12.681733474927329,
-     "29": 60.16451795439782,
+     "29": 60.16451795439784,
      "33": 0.1615310903396576,
      "40": 30.076794647263576,
-     "41": 94.42950574584444,
+     "41": 94.42950574584445,
      "95": 0.10907242356521565,
      "125": 0.00799999999999998,
      "150": 0.07296997558804555,
      "225": 0.08831674149954474
     }
    },
-   "mesh_time_s": 0.443790861999787,
+   "mesh_time_s": 0.42500394204398617,
    "landmarks": {
     "nipple_mm": [
      38.75,
@@ -259,20 +213,6 @@
     },
     {
      "id": "E2",
-     "clock_hour": 1.5,
-     "s": 0.55,
-     "center_mm": [
-      17.760299685772907,
-      14.944404722010065,
-      14.712077224839902
-     ],
-     "meshed_area_mm2": 127.39359079558027,
-     "nominal_area_mm2": 78.53981633974483,
-     "projected_area_mm2": 77.13326623372897,
-     "n_facets": 199
-    },
-    {
-     "id": "E3",
      "clock_hour": 3,
      "s": 0.55,
      "center_mm": [
@@ -286,21 +226,7 @@
      "n_facets": 124
     },
     {
-     "id": "E4",
-     "clock_hour": 4.5,
-     "s": 0.55,
-     "center_mm": [
-      7.014512607541441,
-      21.085421050186945,
-      -27.9657
-     ],
-     "meshed_area_mm2": 122.10660313237152,
-     "nominal_area_mm2": 78.53981633974483,
-     "projected_area_mm2": 77.0456735426872,
-     "n_facets": 136
-    },
-    {
-     "id": "E5",
+     "id": "E3",
      "clock_hour": 6,
      "s": 0.55,
      "center_mm": [
@@ -314,21 +240,7 @@
      "n_facets": 87
     },
     {
-     "id": "E6",
-     "clock_hour": 7.5,
-     "s": 0.55,
-     "center_mm": [
-      15.681179274208105,
-      -26.317966666666667,
-      -25.9657
-     ],
-     "meshed_area_mm2": 127.59874134572465,
-     "nominal_area_mm2": 78.53981633974483,
-     "projected_area_mm2": 78.39357349971723,
-     "n_facets": 102
-    },
-    {
-     "id": "E7",
+     "id": "E4",
      "clock_hour": 9,
      "s": 0.55,
      "center_mm": [
@@ -340,20 +252,6 @@
      "nominal_area_mm2": 78.53981633974483,
      "projected_area_mm2": 81.13436960969155,
      "n_facets": 66
-    },
-    {
-     "id": "E8",
-     "clock_hour": 10.5,
-     "s": 0.55,
-     "center_mm": [
-      22.41650180291688,
-      -18.317966666666667,
-      10.045410558173236
-     ],
-     "meshed_area_mm2": 126.90341507776013,
-     "nominal_area_mm2": 78.53981633974483,
-     "projected_area_mm2": 79.2127002513158,
-     "n_facets": 101
     }
    ],
    "tumour": {
@@ -372,7 +270,7 @@
      "29": 779.5000000000001,
      "95": 2.0000000000000013
     },
-    "min_distance_to_electrode_mm": 5.968512965851776,
+    "min_distance_to_electrode_mm": 9.66865932755309,
     "warnings": [],
     "placement": "anatomical",
     "skin_point_mm": [
@@ -1212,7 +1110,7 @@
      "id": "across_vertical",
      "inject": [
       "E1",
-      "E5"
+      "E3"
      ],
      "sense": [
       "E2",
@@ -1221,38 +1119,14 @@
      "type": "tetrapolar"
     },
     {
-     "id": "across_horizontal",
-     "inject": [
-      "E3",
-      "E7"
-     ],
-     "sense": [
-      "E4",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "upper_outer",
+     "id": "bipolar_E1E3",
      "inject": [
       "E1",
       "E3"
      ],
      "sense": [
-      "E2",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "bipolar_E1E5",
-     "inject": [
       "E1",
-      "E5"
-     ],
-     "sense": [
-      "E1",
-      "E5"
+      "E3"
      ],
      "type": "bipolar"
     },
@@ -1269,109 +1143,13 @@
      "type": "tetrapolar"
     },
     {
-     "id": "adj_E1E2_E4E5",
-     "inject": [
-      "E1",
-      "E2"
-     ],
-     "sense": [
-      "E4",
-      "E5"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E1E2_E5E6",
-     "inject": [
-      "E1",
-      "E2"
-     ],
-     "sense": [
-      "E5",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E1E2_E6E7",
-     "inject": [
-      "E1",
-      "E2"
-     ],
-     "sense": [
-      "E6",
-      "E7"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E1E2_E7E8",
-     "inject": [
-      "E1",
-      "E2"
-     ],
-     "sense": [
-      "E7",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E2E3_E4E5",
+     "id": "adj_E2E3_E4E1",
      "inject": [
       "E2",
       "E3"
      ],
      "sense": [
       "E4",
-      "E5"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E2E3_E5E6",
-     "inject": [
-      "E2",
-      "E3"
-     ],
-     "sense": [
-      "E5",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E2E3_E6E7",
-     "inject": [
-      "E2",
-      "E3"
-     ],
-     "sense": [
-      "E6",
-      "E7"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E2E3_E7E8",
-     "inject": [
-      "E2",
-      "E3"
-     ],
-     "sense": [
-      "E7",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E2E3_E8E1",
-     "inject": [
-      "E2",
-      "E3"
-     ],
-     "sense": [
-      "E8",
       "E1"
      ],
      "type": "tetrapolar"
@@ -1389,358 +1167,22 @@
      "type": "tetrapolar"
     },
     {
-     "id": "adj_E3E4_E5E6",
-     "inject": [
-      "E3",
-      "E4"
-     ],
-     "sense": [
-      "E5",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E3E4_E6E7",
-     "inject": [
-      "E3",
-      "E4"
-     ],
-     "sense": [
-      "E6",
-      "E7"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E3E4_E7E8",
-     "inject": [
-      "E3",
-      "E4"
-     ],
-     "sense": [
-      "E7",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E3E4_E8E1",
-     "inject": [
-      "E3",
-      "E4"
-     ],
-     "sense": [
-      "E8",
-      "E1"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E4E5_E1E2",
+     "id": "adj_E4E1_E2E3",
      "inject": [
       "E4",
-      "E5"
-     ],
-     "sense": [
-      "E1",
-      "E2"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E4E5_E2E3",
-     "inject": [
-      "E4",
-      "E5"
-     ],
-     "sense": [
-      "E2",
-      "E3"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E4E5_E6E7",
-     "inject": [
-      "E4",
-      "E5"
-     ],
-     "sense": [
-      "E6",
-      "E7"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E4E5_E7E8",
-     "inject": [
-      "E4",
-      "E5"
-     ],
-     "sense": [
-      "E7",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E4E5_E8E1",
-     "inject": [
-      "E4",
-      "E5"
-     ],
-     "sense": [
-      "E8",
-      "E1"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E5E6_E1E2",
-     "inject": [
-      "E5",
-      "E6"
-     ],
-     "sense": [
-      "E1",
-      "E2"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E5E6_E2E3",
-     "inject": [
-      "E5",
-      "E6"
-     ],
-     "sense": [
-      "E2",
-      "E3"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E5E6_E3E4",
-     "inject": [
-      "E5",
-      "E6"
-     ],
-     "sense": [
-      "E3",
-      "E4"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E5E6_E7E8",
-     "inject": [
-      "E5",
-      "E6"
-     ],
-     "sense": [
-      "E7",
-      "E8"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E5E6_E8E1",
-     "inject": [
-      "E5",
-      "E6"
-     ],
-     "sense": [
-      "E8",
-      "E1"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E6E7_E1E2",
-     "inject": [
-      "E6",
-      "E7"
-     ],
-     "sense": [
-      "E1",
-      "E2"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E6E7_E2E3",
-     "inject": [
-      "E6",
-      "E7"
-     ],
-     "sense": [
-      "E2",
-      "E3"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E6E7_E3E4",
-     "inject": [
-      "E6",
-      "E7"
-     ],
-     "sense": [
-      "E3",
-      "E4"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E6E7_E4E5",
-     "inject": [
-      "E6",
-      "E7"
-     ],
-     "sense": [
-      "E4",
-      "E5"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E6E7_E8E1",
-     "inject": [
-      "E6",
-      "E7"
-     ],
-     "sense": [
-      "E8",
-      "E1"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E7E8_E1E2",
-     "inject": [
-      "E7",
-      "E8"
-     ],
-     "sense": [
-      "E1",
-      "E2"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E7E8_E2E3",
-     "inject": [
-      "E7",
-      "E8"
-     ],
-     "sense": [
-      "E2",
-      "E3"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E7E8_E3E4",
-     "inject": [
-      "E7",
-      "E8"
-     ],
-     "sense": [
-      "E3",
-      "E4"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E7E8_E4E5",
-     "inject": [
-      "E7",
-      "E8"
-     ],
-     "sense": [
-      "E4",
-      "E5"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E7E8_E5E6",
-     "inject": [
-      "E7",
-      "E8"
-     ],
-     "sense": [
-      "E5",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E8E1_E2E3",
-     "inject": [
-      "E8",
       "E1"
      ],
      "sense": [
       "E2",
       "E3"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E8E1_E3E4",
-     "inject": [
-      "E8",
-      "E1"
-     ],
-     "sense": [
-      "E3",
-      "E4"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E8E1_E4E5",
-     "inject": [
-      "E8",
-      "E1"
-     ],
-     "sense": [
-      "E4",
-      "E5"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E8E1_E5E6",
-     "inject": [
-      "E8",
-      "E1"
-     ],
-     "sense": [
-      "E5",
-      "E6"
-     ],
-     "type": "tetrapolar"
-    },
-    {
-     "id": "adj_E8E1_E6E7",
-     "inject": [
-      "E8",
-      "E1"
-     ],
-     "sense": [
-      "E6",
-      "E7"
      ],
      "type": "tetrapolar"
     }
    ]
   }
  },
- "total_time_s": 105.6951164420002,
- "peak_rss_mb": 5896.704,
+ "total_time_s": 99.41434924898203,
+ "peak_rss_mb": 5921.144,
  "phasor_convention": "v(t) = Re{V exp(+j omega t)}",
  "z_definition": "Z = (U_sense_pos - U_sense_neg) / I"
 }

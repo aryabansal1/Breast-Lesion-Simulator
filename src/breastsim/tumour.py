@@ -99,7 +99,15 @@ def make_tumour(spec, center_mm) -> Tumour:
         return Tumour(shape, c, R, semi_axes_mm=np.asarray(spec["semi_axes_mm"], float))
     if shape == "voxel":
         n = spec["dims"]
-        m = np.fromfile(spec["path"], dtype=np.uint8).reshape(n[::-1]).transpose(2, 1, 0) > 0
+        path = str(spec["path"])
+        if path.endswith(".gz"):
+            import gzip
+
+            with gzip.open(path) as fh:
+                raw = np.frombuffer(fh.read(), dtype=np.uint8)
+        else:
+            raw = np.fromfile(path, dtype=np.uint8)
+        m = raw.reshape(n[::-1]).transpose(2, 1, 0) > 0
         idx = np.argwhere(m)
         extent = (idx.max(0) - idx.min(0) + 1).max()
         voxel = float(spec["size_mm"]) / extent if "size_mm" in spec else float(spec["voxel_mm"])

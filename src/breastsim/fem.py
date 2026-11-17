@@ -108,15 +108,16 @@ class CEMSystem:
         self._amg = None
         self.iterations = []
 
-    def factorize(self):
+    def factorize(self, perm=None):
         """Sparse LU (SuperLU) with a fill-reducing nested-dissection ordering (METIS).
 
         The matrix is complex symmetric with a dominant diagonal, so symmetric mode
-        without partial pivoting is used; the residual is checked after every solve."""
+        without partial pivoting is used; the residual is checked after every solve.
+        ``perm`` reuses an ordering computed for a system with the same sparsity pattern."""
         t0 = time.perf_counter()
         if self.method == "iterative":
             return self._setup_amg(t0)
-        self.perm = nested_dissection_order(self.A)
+        self.perm = nested_dissection_order(self.A) if perm is None else perm
         self.ordering = "metis_nd" if self.perm is not None else "mmd_at_plus_a"
         if self.perm is None:
             self._lu = spla.splu(self.A, permc_spec="MMD_AT_PLUS_A", diag_pivot_thresh=0.0,
@@ -229,9 +230,12 @@ def nested_dissection_order(a):
         import pymetis
     except ImportError:
         return None
-    g = (a != 0).tocsr().astype(np.int8)
+    a = a.tocsr()
+    g = sp.csr_matrix((np.ones(a.nnz, np.int8), a.indices, a.indptr), shape=a.shape)
+    g = (g + g.T).tocsr()  # METIS needs a symmetric graph; numerical cancellation can break symmetry of a != 0
     g.setdiag(0)
     g.eliminate_zeros()
+    g.sort_indices()
     if hasattr(pymetis, "CSRAdjacency"):
         perm, _ = pymetis.nested_dissection(pymetis.CSRAdjacency(g.indptr, g.indices))
     else:

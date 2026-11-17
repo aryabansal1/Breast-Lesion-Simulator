@@ -1,0 +1,10 @@
+{
+ "breastsim_version": "0.1.0",
+ "git_commit": "91ab2ff610e5aff458a095f42b81ee90ffeca6f8",
+ "created": "2026-11-17T07:34:26.806715+00:00",
+ "material_library_sha256": "ec3a4453f2c5ce1f373c963fe0b7d92542c51660e468f090193905a8f0818b48",
+ "n_geometries": 256,
+ "n_rejected": 11,
+ "n_records": 1225,
+ "total_job_time_s": 117525.71745081677
+}
