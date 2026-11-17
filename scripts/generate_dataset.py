@@ -75,12 +75,20 @@ def _library_sha(path):
     return MaterialLibrary.load(path).sha256
 
 
+@functools.lru_cache
+def _file_sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
 def job_fingerprint(spec, job):
     """Hash of every input that determines a job's result, so a cached job from a changed sweep is re-run."""
-    key = dict(job=job, base=spec["base"], anatomy=spec["compositions"][job["composition"]],
-               shape=spec["lesion_shapes"][job["shape_id"]], lesion_materials=list(spec["lesion_materials"]),
+    shape = spec["lesion_shapes"][job["shape_id"]]
+    key = dict(job=job, base=spec["base"], anatomy=spec["compositions"][job["composition"]], shape=shape,
+               lesion_materials=list(spec["lesion_materials"]),
                electrode_margin_mm=spec.get("electrode_margin_mm", 1.0),
-               library_sha256=_library_sha(str(ROOT / spec["base"]["materials"]["library"])))
+               library_sha256=_library_sha(str(ROOT / spec["base"]["materials"]["library"])),
+               anatomy_sha256=_file_sha(str(ROOT / spec["compositions"][job["composition"]])),
+               lesion_file_sha256=_file_sha(str(ROOT / shape["path"])) if "path" in shape else None)
     return hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
 
 
